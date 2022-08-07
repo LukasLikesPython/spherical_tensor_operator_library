@@ -1,27 +1,51 @@
 from sympy import Symbol
-from sympy.physics.wigner import (
-                                  clebsch_gordan,
-                                  wigner_6j,
-                                  wigner_9j
-                                  )
-from abc import ABC
+from sympy.physics.wigner import clebsch_gordan, wigner_6j, wigner_9j
+from abc import ABC, abstractmethod
 
 
-class TensorOperatorComponent(ABC):
+class TensorOperatorInterface(ABC):
     """
 
     """
-    def __init__(self, rank=0, factor=1):
+    def __init__(self, rank=0, factor=1, space='1', representation='X'):
         self._rank = rank
         self._factor = factor
+        self._space = space
+        self._representation = representation
+
+    def __mul__(self, other):
+        self._factor *= other
+
+    def __add__(self, other):
+        self.add(other)
+
+    @abstractmethod
+    def __str__(self):
+        pass
+
+    @abstractmethod
+    def to_latex(self):
+        pass
+
+    @abstractmethod
+    def recouple(self):
+        pass
+
+    @abstractmethod
+    def add(self, other):
+        pass
+
+    @abstractmethod
+    def remove(self, other):
+        pass
+
+    @abstractmethod
+    def couple(self, other):
+        pass
 
     @property
     def rank(self):
         return self._rank
-
-    @rank.setter
-    def rank(self, value):
-        self._rank = value
 
     @property
     def factor(self):
@@ -31,20 +55,24 @@ class TensorOperatorComponent(ABC):
     def factor(self, value):
         self._factor = value
 
+    @property
+    def representation(self):
+        return self._representation
 
-class TensorOperatorComposite(TensorOperatorComponent):
+    @property
+    def space(self):
+        return self._space
+
+
+
+
+class TensorOperatorComposite(TensorOperatorInterface):
     pass
 
 
-class TensorOperator(TensorOperatorComponent):
+class TensorOperator(TensorOperatorInterface):
     pass
 
 
 
 
-
-
-
-if __name__ == "__main__":
-    top = TensorOperatorComponent()
-    top.rank(10)
