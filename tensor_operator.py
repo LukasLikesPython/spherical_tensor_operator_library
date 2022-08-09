@@ -70,22 +70,23 @@ class TensorOperatorComposite(TensorOperatorInterface):
         return new_object
 
     def couple(self, other, rank, factor):
-        if isinstance(other, TensorOperatorComposite):
-            new_children = [child.couple(other_child, rank, factor) for child in self.children for other_child in
-                            other.children]
-        elif isinstance(other, TensorOperator):
-            new_children = [child.couple(other, rank, factor) for child in self.children]
+        if isinstance(other, self.__class__):
+            args = [child.couple(other_child, rank, factor) for child in self.children for other_child in
+                    other.children]
         else:
-            raise (TypeError(f"Cannot couple type {type(other)} to an object of {type(self)}."))
-        new_object = TensorOperatorComposite(new_children)
+            args = [child.couple(other, rank, factor) for child in self.children]
+
+        new_object = self.__class__(*args)
         new_object._simplify()
         return new_object
 
     def _simplify(self):
-        children = self.children[::-1]
+        children = self.children
         new_children = []
         while len(children) > 0:
             child = children.pop(0)
+            if not child:  # Remove bad couplings
+                continue
             for i, other_child in enumerate(children):
                 if child == other_child:
                     children.pop(i)
@@ -111,7 +112,9 @@ class TensorOperator(TensorOperatorInterface):
         return self.__class__(self.rank, new_factor, self.space, self.representation)
 
     def __eq__(self, other):
-        if self.space == other.space and self.representation == other.representation and self.rank == other.rank:
+        if not isinstance(other, self.__class__):
+            return False
+        elif self.space == other.space and self.representation == other.representation and self.rank == other.rank:
             return True
         else:
             return False
@@ -158,23 +161,32 @@ class TensorOperator(TensorOperatorInterface):
                + "_" + str(self.rank)
 
     def couple(self, other, rank, factor):
+        # Coupling two operators to the new rank is not possible
         if not abs(self.rank - other.rank) <= rank <= self.rank + other.rank:
-            return 0  # Coupling those two operators to the new rank is not possible
+            return 0
 
-        new_factor = self.factor * other.factor * factor
+        # Coupling two identical operators to rank 1 is a cross product, i.e., zero for parallel vectors
+        if self == other and rank == 1:
+            return 0
 
-        if self.space == other.space:
-            new_space = self.space
-        else:
-            new_space = [self.space, other.space]
-            # TODO possibly I have to reorder here and use commutator relations
-        new_representation = [self._to_expression_no_factor(), other._to_expression_no_factor()]
+        # Valid cases
+        if isinstance(other, self.CompositeClass):
+            args = [self.couple(other_child) for other_child in other.children]
+            return self.CompositeClass(*args)
+        elif isinstance(other, self.__class__):
+            new_factor = self.factor * other.factor * factor
+            if self.space == other.space:
+                new_space = self.space
+            else:
+                new_space = [self.space, other.space]
+            new_representation = [self._to_expression_no_factor(), other._to_expression_no_factor()]
+            return self.__class__(rank, new_factor, new_space, new_representation)
 
-        return self.__class__(rank, new_factor, new_space, new_representation)
 
 
 if __name__ == "__main__":
     top = TensorOperator(rank=1, factor=1, space='rel', representation="q")
+    ktop = TensorOperator(rank=1, factor=1, space='rel', representation="k")
     qsq = top.couple(top, 0, 3)
     print(qsq)
     print(top)
@@ -183,7 +195,12 @@ if __name__ == "__main__":
     print(tlist)
     print(top)
 
-    tlist = tlist + qsq + top
+    tlist = tlist + qsq + top + top + qsq
     print(tlist)
-    tlist._simplify()
+
+    tlist = tlist + (tlist + ktop)
     print(tlist)
+
+    ntlist = tlist.couple(ktop, 1, 1)
+    print(ntlist)
+
