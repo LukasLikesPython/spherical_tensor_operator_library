@@ -15,9 +15,9 @@ class TestTensorOperator(unittest.TestCase):
         self.assertEqual("1 * {q_1 x k_1}_2", str(self.basic_block.couple(self.other_block, 2, 1)))
         self.assertEqual("1 * {q_1 x k_1}_1", str(self.basic_block.couple(self.other_block, 1, 1)))
         self.assertEqual("1 * {q_1 x k_1}_0", str(self.basic_block.couple(self.other_block, 0, 1)))
-        self.assertEqual("0", str(self.basic_block.couple(self.other_block, 3, 1)))  # 3 > 1 + 1, so not allowed
-        self.assertEqual("0", str(self.basic_block.couple(self.basic_block, 100, 1)))
-        self.assertEqual("0", str(self.basic_block.couple(self.basic_block, -1, 1)))
+        self.assertEqual(None, self.basic_block.couple(self.other_block, 3, 1))  # 3 > 1 + 1, so not allowed
+        self.assertEqual(None, self.basic_block.couple(self.basic_block, 100, 1))
+        self.assertEqual(None, self.basic_block.couple(self.basic_block, -1, 1))
 
     def test_couple_tensor_operator_list(self):
         pass

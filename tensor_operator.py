@@ -1,5 +1,6 @@
 from abc import ABC, abstractmethod
-
+import tensor_algebra
+from copy import deepcopy
 
 class TensorOperatorInterface(ABC):
     """
@@ -100,12 +101,14 @@ class TensorOperator(TensorOperatorInterface):
 
     """
     CompositeClass = TensorOperatorComposite
+    TensorAlgebra = tensor_algebra.TensorAlgebra
 
-    def __init__(self, rank=0, factor=1, space='1', representation=None):
+    def __init__(self, rank=0, factor=1, space='1', representation=None, substructure=None):
         self._rank = rank
         self._factor = factor
         self._space = space
         self._representation = representation
+        self._substructure = substructure
 
     def __mul__(self, factor):
         new_factor = self.factor * factor
@@ -135,9 +138,25 @@ class TensorOperator(TensorOperatorInterface):
     def representation(self):
         return self._representation
 
+    @representation.setter
+    def representation(self, value):
+        self._representation = value
+
     @property
     def space(self):
         return self._space
+
+    @space.setter
+    def space(self, value):
+        self._space = value
+
+    @property
+    def substructure(self):
+        return self._substructure
+
+    @substructure.setter
+    def substructure(self, value):
+        self._substructure = value
 
     def add(self, other):
         if isinstance(other, self.CompositeClass):
@@ -163,15 +182,15 @@ class TensorOperator(TensorOperatorInterface):
     def couple(self, other, rank, factor):
         # Coupling two operators to the new rank is not possible
         if not abs(self.rank - other.rank) <= rank <= self.rank + other.rank:
-            return 0
+            return None
 
         # Coupling two identical operators to rank 1 is a cross product, i.e., zero for parallel vectors
         if self == other and rank == 1:
-            return 0
+            return None
 
         # Valid cases
         if isinstance(other, self.CompositeClass):
-            args = [self.couple(other_child) for other_child in other.children]
+            args = [self.couple(other_child, rank, factor) for other_child in other.children]
             return self.CompositeClass(*args)
         elif isinstance(other, self.__class__):
             new_factor = self.factor * other.factor * factor
@@ -180,8 +199,39 @@ class TensorOperator(TensorOperatorInterface):
             else:
                 new_space = [self.space, other.space]
             new_representation = [self._to_expression_no_factor(), other._to_expression_no_factor()]
-            return self.__class__(rank, new_factor, new_space, new_representation)
+            # keep track of factors on outermost layer
+            tensor_a = deepcopy(self)
+            tensor_b = deepcopy(other)
+            tensor_a.factor = 1
+            tensor_b.factor = 1
+            substructure = [tensor_a, tensor_b]
+            new_object = self.__class__(rank, new_factor, new_space, new_representation, substructure)
+            new_object.order()
+            print(new_object.substructure)
+            return new_object
 
+    def order(self):
+        """
+        Order the tensor operators according to
+            1st) their space
+            2nd) their representation
+        The idea is to have a consistent represenation. The order itself does not matter.
+        :return: None
+        """
+        new_top = None
+        if self.substructure:  # ordering only makes sense if there is a substructure
+            tensor_a, tensor_b = self.substructure
+            if tensor_a.space > tensor_b.space:
+                new_top = self.TensorAlgebra.commute(self)
+            else:
+                if isinstance(tensor_a.representation, str) \
+                        and tensor_a.representation > tensor_b.representation:
+                    new_top = self.TensorAlgebra.commute(self)
+        if new_top:
+            self.factor = new_top.factor
+            self.representation = new_top.representation
+            self.space = new_top.space
+            self.substructure = new_top.substructure
 
 
 if __name__ == "__main__":
@@ -190,17 +240,20 @@ if __name__ == "__main__":
     qsq = top.couple(top, 0, 3)
     print(qsq)
     print(top)
-
+    print('Mutliplication')
     tlist = qsq + 2 * top
     print(tlist)
     print(top)
-
+    print('Addition')
     tlist = tlist + qsq + top + top + qsq
     print(tlist)
 
     tlist = tlist + (tlist + ktop)
     print(tlist)
-
+    print('Coupling')
     ntlist = tlist.couple(ktop, 1, 1)
     print(ntlist)
+    ntlist = ntlist.couple(ktop, 1, 1)
+    print(ntlist)
+    print(tlist)
 
