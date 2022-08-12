@@ -3,6 +3,7 @@ from tensor_transformation import VectorOperator, TensorFromVectors
 from tensor_operator import TensorOperator
 from sympy import I, sqrt
 
+
 class TestVectorToTensor(unittest.TestCase):
     q_1 = TensorOperator(rank=1, factor=1, symbol='q', space='relative')
     k_1 = TensorOperator(rank=1, factor=1, symbol='k', space='relative')
@@ -24,6 +25,7 @@ class TestVectorToTensor(unittest.TestCase):
 
         self.assertEqual(str(tensor_object_vector),
                          str(TensorFromVectors.tensor_from_vector_product(self.q_1, self.k_1)))
+
 
 if __name__ == '__main__':
     unittest.main()
