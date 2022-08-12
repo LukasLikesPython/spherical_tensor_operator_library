@@ -175,8 +175,8 @@ class TensorOperator(TensorOperatorInterface):
             return self.CompositeClass(self, other)
 
     def to_latex(self):
-        return str(self.factor) + " * "\
-               + str(self.symbol).replace("[", "\\left\\lbrace").replace("]", "\\right\\rbrace").\
+        return str(self.factor) + " * " \
+               + str(self.symbol).replace("[", "\\left\\lbrace").replace("]", "\\right\\rbrace"). \
                    replace(', ', ' \\otimes ').replace("'", "") + "_" + "{" + str(self.rank) + "}"
 
     def to_expression(self):

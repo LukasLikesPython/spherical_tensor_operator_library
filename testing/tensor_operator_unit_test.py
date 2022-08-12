@@ -67,7 +67,7 @@ class TestTensorOperator(unittest.TestCase):
         coupled_block = (self.basic_block * 2).couple(self.basic_block, 2, 1) * 3
         self.assertEqual("6 * {q_1 x q_1}_2", str(coupled_block))
         self.assertEqual(6, coupled_block.factor)
-            # Test the substructure, the factor should be one as it is carried to the outer layer
+        # Test the substructure, the factor should be one as it is carried to the outer layer
         self.assertEqual(1, coupled_block.substructure[0].factor)
         self.assertEqual(1, coupled_block.substructure[1].factor)
 
@@ -85,6 +85,7 @@ class TestTensorOperator(unittest.TestCase):
     def test_add_tensor_lists(self):
         tensor_list = self.basic_block + self.other_block
         self.assertEqual("2 * q_1 + 2 * k_1", str(tensor_list + tensor_list))
+
 
 class TestTensorAlgebra(unittest.TestCase):
 
