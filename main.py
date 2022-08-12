@@ -6,6 +6,7 @@
 
 # NOTES:
 # - Commute tensor operators according to space and symbol
+# - Factory pattern for operator creation?
 
 def print_hi(name):
     # Use a breakpoint in the code line below to debug your script.
