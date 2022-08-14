@@ -1,4 +1,16 @@
 from sympy.physics.wigner import clebsch_gordan, wigner_6j, wigner_9j
+from sympy import sqrt
+from math import prod
+
+
+def jsc(*args):
+    """
+    Auxiliary function for a reappearing element during recoupling actions [j], where [j] = sqrt(2 * j + 1)
+
+    :param args: either a single integer or multiple integers
+    :return: the product of the input
+    """
+    return prod([sqrt(2 * arg + 1) for arg in args])
 
 
 class TensorAlgebra(object):
@@ -30,64 +42,36 @@ class TensorAlgebra(object):
         The assumption is, that these operators are already ordered according to their spaces within the brackets and
         that space A = space C and space B = space D.
 
-        :param tensor_op:
+        :param tensor_op: the tensor operator that should be recoupled
         :param rank: the new rank to which it should be coupled
-        :param factor:
-        :return:
+        :param factor: a factor that appears during the recoupling
+        :return: recoupled tensor operator
         """
         first_pair, second_pair = tensor_op.substructure
         tensor_a, tensor_b = first_pair.children
         tensor_c, tensor_d = second_pair.children
-        if tensor_a.space != tensor_c.space or tensor_b.space != tensor_d.space
+        if tensor_a.space != tensor_c.space or tensor_b.space != tensor_d.space:
+            return None  # This is not the correct recoupling function for the given operator
+        new_factor = tensor_op.factor * factor
+        a = tensor_a.rank
+        b = tensor_b.rank
+        c = tensor_c.rank
+        d = tensor_d.rank
+        e = first_pair.rank
+        f = second_pair.rank
 
+        new_tensor_list = []
+        for g in range(abs(a - c), a + c + 1):
+            for h in range(abs(b - d), b + d + 1):
+                new_factor *= jsc([e, f, g, h]) * wigner_9j(a, b, e, c, d, f, g, h, rank)
+                if new_factor != 0:
+                    new_first_pair = tensor_a.couple(tensor_c, g, 1)
+                    new_second_pair = tensor_b.couple(tensor_d, h, 1)
+                    new_tensor = new_first_pair.couple(new_second_pair, rank, new_factor)
+                    new_tensor_list.append(new_tensor)
+        return new_tensor_list
 
-        for g in range(abs(a - d), a + d + 1):
-            for h in range(abs(b - e), b + e + 1):
-                fac = ljsc([c, f, g, h]) * nj(a, b, c, d, e, f, g, h, i) * prefac
-
-        def tenrec422(self, other, rank, fac=1.):
-            print
-            'recoupling (422)'
-            obj1 = self.obj[0][0]
-            obj2 = self.obj[0][1]
-            obj3 = other.obj[0][0]
-            obj4 = other.obj[0][1]
-            attr1 = self.attr[0]
-            attr2 = self.attr[1]
-            attr3 = other.attr[0]
-            attr4 = other.attr[1]
-            c = self.rank
-            f = other.rank
-            a = obj1[2]
-            b = obj2[2]
-            d = obj3[2]
-            e = obj4[2]
-            i = rank
-            o1 = TensorOp(a, attr1, obj1[1], obj1[0], fac=1.)
-            o2 = TensorOp(b, attr2, obj2[1], obj2[0], fac=1.)
-            o3 = TensorOp(d, attr3, obj3[1], obj3[0], fac=1.)
-            o4 = TensorOp(e, attr4, obj4[1], obj4[0], fac=1.)
-            prefac = self.fac * other.fac * fac
-            outlist = []
-            for g in range(abs(a - d), a + d + 1):
-                for h in range(abs(b - e), b + e + 1):
-                    fac = ljsc([c, f, g, h]) * nj(a, b, c, d, e, f, g, h, i) * prefac
-                    if fac != 0:
-                        try:
-                            if kill_check(o1, o3, g) or kill_check(o2, o4,
-                                                                   h):  # cross product of identical vectors vanishes
-                                print
-                                "Vector product vanishes"
-                            else:
-                                co1 = o1.couple(o3, g, 1.)
-                                co2 = o2.couple(o4, h, 1.)
-                                oout = co1.couple(co2, i, fac)
-                                outlist += [oout, ]
-                        except:
-                            print
-                            'no combination for tensor combination of ranks (422)', g, h
-            return TOPlist(outlist)
-
+"""
         def tenrec431(self, other, rank, fac=1.):
             '''
             Recouple 431: ((AxB)x(AB x C)) => (((AxB)xAB)xC)
@@ -250,3 +234,15 @@ class TensorAlgebra(object):
                         print
                         'no combination for tensor combination of rank (312)', c
             return TOPlist(outlist)
+"""
+
+
+if __name__ == "__main__":
+    from tensor_operator import TensorOperator
+    from tensor_transformation import TensorFromVectors
+    q = TensorOperator(rank=1, symbol="q", space="rel")
+    sig1 = TensorOperator(rank=1, symbol="sig1", space="spin")
+    sig2 = TensorOperator(rank=1, symbol="sig2", space="spin")
+    tensor_op = TensorFromVectors.tensor_from_scalar_product(q, sig1).\
+        couple(TensorFromVectors.tensor_from_scalar_product(q, sig2), 0, 1)
+    print(tensor_op)
