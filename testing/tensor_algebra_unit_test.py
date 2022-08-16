@@ -2,6 +2,7 @@ import unittest
 from tensor_operator import TensorOperator
 from tensor_algebra import TensorAlgebra
 from tensor_transformation import TensorFromVectors
+from sympy import I
 
 
 class TestTensorAlgebra(unittest.TestCase):
@@ -30,11 +31,8 @@ class TestTensorAlgebra(unittest.TestCase):
             str(TensorAlgebra.recouple(operator)))
 
     def test_recouple_2x2_3x1(self):
-        sigdiff = self.sig1 - self.sig2
-        operator = I * TensorFromVectors.scalar_product(TensorFromVectors.vector_product(self.q, self.P), sigdiff)
-        self.assertEqual(
-            'sqrt(6) {{q_1 x ',
-            str(TensorAlgebra.recouple(operator)))
+        operator = I * TensorFromVectors.scalar_product(TensorFromVectors.vector_product(self.q, self.P), self.sig1)
+        self.assertEqual('sqrt(6) {{q_1 x sig1_1}_1 x P_1}_0', str(TensorAlgebra.recouple(operator)))
 
 if __name__ == '__main__':
     unittest.main()
