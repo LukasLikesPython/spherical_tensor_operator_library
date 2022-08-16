@@ -13,18 +13,18 @@ class TestVectorToTensor(unittest.TestCase):
     def test_scalar_product(self):
         tensor_object_scalar = self.q_1.couple(self.k_1, 0, -sqrt(3))
         self.assertEqual(str(tensor_object_scalar),
-                         str(TensorFromVectors.tensor_from_scalar_product(self.vec_q, self.vec_k)))
+                         str(TensorFromVectors.scalar_product(self.vec_q, self.vec_k)))
 
         self.assertEqual(str(tensor_object_scalar),
-                         str(TensorFromVectors.tensor_from_scalar_product(self.q_1, self.k_1)))
+                         str(TensorFromVectors.scalar_product(self.q_1, self.k_1)))
 
     def test_vector_product(self):
         tensor_object_vector = self.q_1.couple(self.k_1, 1, -I * sqrt(2))
         self.assertEqual(str(tensor_object_vector),
-                         str(TensorFromVectors.tensor_from_vector_product(self.vec_q, self.vec_k)))
+                         str(TensorFromVectors.vector_product(self.vec_q, self.vec_k)))
 
         self.assertEqual(str(tensor_object_vector),
-                         str(TensorFromVectors.tensor_from_vector_product(self.q_1, self.k_1)))
+                         str(TensorFromVectors.vector_product(self.q_1, self.k_1)))
 
 
 if __name__ == '__main__':

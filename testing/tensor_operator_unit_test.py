@@ -87,23 +87,5 @@ class TestTensorOperator(unittest.TestCase):
         self.assertEqual("2 * q_1 + 2 * k_1", str(tensor_list + tensor_list))
 
 
-class TestTensorAlgebra(unittest.TestCase):
-
-    basic_block = TensorOperator(rank=1, symbol='q', space='relative')
-    other_block = TensorOperator(rank=1, symbol='k', space='relative')
-    other_space = TensorOperator(rank=1, symbol='sig', space='spin')
-    qk0_block = basic_block.couple(other_block, 0, 1, False)
-    qk1_block = basic_block.couple(other_block, 1, 1, False)
-    qk2_block = basic_block.couple(other_block, 2, 1, False)
-    kq0_block = other_block.couple(basic_block, 0, 1, False)
-    kq1_block = other_block.couple(basic_block, 1, 1, False)
-    kq2_block = other_block.couple(basic_block, 2, 1, False)
-
-    def test_commute(self):
-        self.assertEqual(self.qk0_block, TensorAlgebra.commute(self.kq0_block))
-        self.assertEqual(-1 * self.qk1_block, TensorAlgebra.commute(self.kq1_block))
-        self.assertEqual(self.qk2_block, TensorAlgebra.commute(self.kq2_block))
-
-
 if __name__ == '__main__':
     unittest.main()

@@ -3,16 +3,6 @@ from sympy import sqrt
 from math import prod
 
 
-def jsc(*args):
-    """
-    Auxiliary function for a reappearing element during recoupling actions [j], where [j] = sqrt(2 * j + 1)
-
-    :param args: either a single integer or multiple integers
-    :return: the product of the input
-    """
-    return prod([sqrt(2 * arg + 1) for arg in args])
-
-
 class TensorAlgebra(object):
     """
 
@@ -23,6 +13,20 @@ class TensorAlgebra(object):
     _recouple_2x2_2x2
     """
 
+    @staticmethod
+    def jsc(*args):
+        """
+        Auxiliary function for a reappearing element during recoupling actions [j], where [j] = sqrt(2 * j + 1)
+
+        :param args: either a single integer or multiple integers
+        :return: the product of the input
+        """
+        return prod([sqrt(2 * arg + 1) for arg in args])
+
+    @staticmethod
+    def decouple_6j(tensor_op, j1, j2, j, j1p, j2p, jp):
+        pass
+
     @classmethod
     def commute(cls, tensor_op):
         tensor_a, tensor_b = tensor_op.substructure
@@ -31,11 +35,20 @@ class TensorAlgebra(object):
         return new_top
 
     @classmethod
-    def recouple(cls, tensor_op):
-        pass
+    def recouple(cls, tensor_op, factor=1):
+        out_tensor = tensor_op
+        try:
+            out_tensor = cls._recouple_2x2_2x2(tensor_op, factor)
+        except TypeError:
+            pass  # TODO
+        if out_tensor:
+            return out_tensor
 
-    @staticmethod
-    def _recouple_2x2_2x2(tensor_op, rank, factor):
+        print("Recoupling was not possible")
+        return tensor_op
+
+    @classmethod
+    def _recouple_2x2_2x2(cls, tensor_op, factor=1):
         """
         Tensor recoupling of the form
         (A x B) x (C x D) -> (A x C) x (B x D)
@@ -43,13 +56,12 @@ class TensorAlgebra(object):
         that space A = space C and space B = space D.
 
         :param tensor_op: the tensor operator that should be recoupled
-        :param rank: the new rank to which it should be coupled
         :param factor: a factor that appears during the recoupling
-        :return: recoupled tensor operator
+        :return: recoupled tensor operator of type TensorOperator or TensorOperatorComposite
         """
         first_pair, second_pair = tensor_op.substructure
-        tensor_a, tensor_b = first_pair.children
-        tensor_c, tensor_d = second_pair.children
+        tensor_a, tensor_b = first_pair.substructure
+        tensor_c, tensor_d = second_pair.substructure
         if tensor_a.space != tensor_c.space or tensor_b.space != tensor_d.space:
             return None  # This is not the correct recoupling function for the given operator
         new_factor = tensor_op.factor * factor
@@ -59,17 +71,26 @@ class TensorAlgebra(object):
         d = tensor_d.rank
         e = first_pair.rank
         f = second_pair.rank
+        rank = tensor_op.rank
 
-        new_tensor_list = []
+        out_tensor = None
         for g in range(abs(a - c), a + c + 1):
             for h in range(abs(b - d), b + d + 1):
-                new_factor *= jsc([e, f, g, h]) * wigner_9j(a, b, e, c, d, f, g, h, rank)
-                if new_factor != 0:
+                if not (abs(g - h) <= rank <= g + h):
+                    continue
+                operator_factor = new_factor * cls.jsc(e, f, g, h) * wigner_9j(a, b, e, c, d, f, g, h, rank)
+                if operator_factor != 0:
                     new_first_pair = tensor_a.couple(tensor_c, g, 1)
                     new_second_pair = tensor_b.couple(tensor_d, h, 1)
-                    new_tensor = new_first_pair.couple(new_second_pair, rank, new_factor)
-                    new_tensor_list.append(new_tensor)
-        return new_tensor_list
+                    if not new_first_pair or not new_second_pair:
+                        continue
+                    new_tensor = new_first_pair.couple(new_second_pair, rank, operator_factor)
+                    if not out_tensor:
+                        out_tensor = new_tensor
+                    else:
+                        out_tensor += new_tensor
+        return out_tensor
+
 
 """
         def tenrec431(self, other, rank, fac=1.):
@@ -236,13 +257,19 @@ class TensorAlgebra(object):
             return TOPlist(outlist)
 """
 
-
 if __name__ == "__main__":
     from tensor_operator import TensorOperator
     from tensor_transformation import TensorFromVectors
+
     q = TensorOperator(rank=1, symbol="q", space="rel")
     sig1 = TensorOperator(rank=1, symbol="sig1", space="spin")
     sig2 = TensorOperator(rank=1, symbol="sig2", space="spin")
-    tensor_op = TensorFromVectors.tensor_from_scalar_product(q, sig1).\
-        couple(TensorFromVectors.tensor_from_scalar_product(q, sig2), 0, 1)
-    print(tensor_op)
+    tensor = TensorFromVectors.scalar_product(q, sig1). \
+        couple(TensorFromVectors.scalar_product(q, sig2), 0, 1)
+    print(tensor)
+    new_tensor_op = TensorAlgebra.recouple(tensor)
+    print(new_tensor_op)
+    print(new_tensor_op.children[0].space)
+    print()
+    tensor = TensorFromVectors.scalar_product(q, q)
+    print(wigner_9j(1, 1, 0, 1, 1, 0, 2, 2, 0) * 5 * 3)
