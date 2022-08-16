@@ -7,6 +7,7 @@ from tensor_transformation import TensorFromVectors
 class TestTensorAlgebra(unittest.TestCase):
     q = TensorOperator(rank=1, symbol='q', space='relative')
     k = TensorOperator(rank=1, symbol='k', space='relative')
+    P = TensorOperator(rank=1, symbol='P', space='xCenterOfMass')
     sig1 = TensorOperator(rank=1, symbol='sig1', space='spin')
     sig2 = TensorOperator(rank=1, symbol='sig2', space='spin')
     qk0_block = q.couple(k, 0, 1, False)
@@ -28,6 +29,12 @@ class TestTensorAlgebra(unittest.TestCase):
             '1 * {{q_1 x q_1}_0 x {sig1_1 x sig2_1}_0}_0 + sqrt(5) * {{q_1 x q_1}_2 x {sig1_1 x sig2_1}_2}_0',
             str(TensorAlgebra.recouple(operator)))
 
+    def test_recouple_2x2_3x1(self):
+        sigdiff = self.sig1 - self.sig2
+        operator = I * TensorFromVectors.scalar_product(TensorFromVectors.vector_product(self.q, self.P), sigdiff)
+        self.assertEqual(
+            'sqrt(6) {{q_1 x ',
+            str(TensorAlgebra.recouple(operator)))
 
 if __name__ == '__main__':
     unittest.main()

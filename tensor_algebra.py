@@ -51,12 +51,12 @@ class TensorAlgebra(object):
     def _recouple_2x2_2x2(cls, tensor_op, factor=1):
         """
         Tensor recoupling of the form
-        (A x B) x (C x D) -> (A x C) x (B x D)
+        (A_a x B_b)_ab x (C_c x D_d)_cd -> (A_a x C_c)_ac x (B_b x D_d)_bd
         The assumption is, that these operators are already ordered according to their spaces within the brackets and
         that space A = space C and space B = space D.
 
         :param tensor_op: the tensor operator that should be recoupled
-        :param factor: a factor that appears during the recoupling
+        :param factor: a factor that appears during the recoupling, default is 1
         :return: recoupled tensor operator of type TensorOperator or TensorOperatorComposite
         """
         first_pair, second_pair = tensor_op.substructure
@@ -69,19 +69,19 @@ class TensorAlgebra(object):
         b = tensor_b.rank
         c = tensor_c.rank
         d = tensor_d.rank
-        e = first_pair.rank
-        f = second_pair.rank
+        ab = first_pair.rank
+        cd = second_pair.rank
         rank = tensor_op.rank
 
         out_tensor = None
-        for g in range(abs(a - c), a + c + 1):
-            for h in range(abs(b - d), b + d + 1):
-                if not (abs(g - h) <= rank <= g + h):
+        for ac in range(abs(a - c), a + c + 1):
+            for bd in range(abs(b - d), b + d + 1):
+                if not (abs(ac - bd) <= rank <= ac + bd):
                     continue
-                operator_factor = new_factor * cls.jsc(e, f, g, h) * wigner_9j(a, b, e, c, d, f, g, h, rank)
+                operator_factor = new_factor * cls.jsc(ab, cd, ac, bd) * wigner_9j(a, b, ab, c, d, cd, ac, bd, rank)
                 if operator_factor != 0:
-                    new_first_pair = tensor_a.couple(tensor_c, g, 1)
-                    new_second_pair = tensor_b.couple(tensor_d, h, 1)
+                    new_first_pair = tensor_a.couple(tensor_c, ac, 1)
+                    new_second_pair = tensor_b.couple(tensor_d, bd, 1)
                     if not new_first_pair or not new_second_pair:
                         continue
                     new_tensor = new_first_pair.couple(new_second_pair, rank, operator_factor)
@@ -91,6 +91,47 @@ class TensorAlgebra(object):
                         out_tensor += new_tensor
         return out_tensor
 
+
+
+    @classmethod
+    def _recouple_2x2_3x1(cls, tensor_op, factor=1):
+        """
+        Tensor recoupling of the form
+        (A_a x B_b)_ab x (C_c x D_d)_cd -> ((A_a x B_b)_ab x C_c)_abc x D_d
+        The assumption is, that these operators are already ordered according to their spaces within the brackets and
+        that space A = space B and space C != space D
+
+
+        :param tensor_op: the tensor operator that should be recoupled
+        :param factor: a factor that appears during the recoupling, default is 1
+        :return: recoupled tensor operator of type TensorOperator or TensorOperatorComposite
+        """
+        first_pair, second_pair = tensor_op.substructure
+        tensor_a, tensor_b = first_pair.substructure
+        tensor_c, tensor_d = second_pair.substructure
+        if not(tensor_a.space == tensor_b.space and tensor_c.space != tensor_d.space):
+            return None  # This is not the correct recoupling function for the given operator
+        new_factor = tensor_op.factor * factor
+        c = tensor_c.rank
+        d = tensor_d.rank
+        ab = first_pair.rank
+        cd = second_pair.rank
+        rank = tensor_op.rank
+
+        out_tensor = None
+        for abc in range(abs(c - ab), c + ab + 1):
+            operator_factor = cls.jsc(cd, abc) * wigner_6j(c, ab, abc, rank, d, cd) * new_factor \
+                              * pow(-1,  d + c + ab + rank)
+            if operator_factor != 0:
+                triplet = first_pair.couple(tensor_c, abc, 1)
+                if not triplet:
+                    continue
+                new_tensor = triplet.couple(tensor_d, rank, operator_factor)
+                if not out_tensor:
+                    out_tensor = new_tensor
+                else:
+                    out_tensor += new_tensor
+            return out_tensor
 
 """
         def tenrec431(self, other, rank, fac=1.):

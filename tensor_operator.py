@@ -14,6 +14,9 @@ class TensorOperatorInterface(ABC):
     def __radd__(self, other):
         return self.__add__(other)
 
+    def __sub__(self, other):
+        return self.add(-1 * other)
+
     def __str__(self):
         return self.to_expression()
 
@@ -50,12 +53,15 @@ class TensorOperatorComposite(TensorOperatorInterface):
     """
 
     def __init__(self, *args):
-        self.children = [arg for arg in args]
+        self.children = [arg for arg in args if arg]
         self._simplify()
 
     def __mul__(self, factor):
+        args = []
         for child in self.children:
-            child *= factor
+            args.append(child * factor)
+        return self.__class__(*args)
+
 
     def to_latex(self):
         return " + ".join([child.to_latex() for child in self.children])
@@ -92,7 +98,8 @@ class TensorOperatorComposite(TensorOperatorInterface):
                 if child == other_child:
                     children.pop(i)
                     child += other_child
-            new_children.append(child)
+            if child:
+                new_children.append(child)
         self.children = new_children
 
 
@@ -112,7 +119,10 @@ class TensorOperator(TensorOperatorInterface):
 
     def __mul__(self, factor):
         new_factor = self.factor * factor
-        return self.__class__(self.rank, new_factor, self.space, self.symbol, self.substructure)
+        if new_factor != 0:
+            return self.__class__(self.rank, new_factor, self.space, self.symbol, self.substructure)
+        else:
+            return None
 
     def __eq__(self, other):
         if not isinstance(other, self.__class__):
@@ -170,7 +180,10 @@ class TensorOperator(TensorOperatorInterface):
             return other + self
         elif self.symbol == other.symbol and self.rank == other.rank:
             new_factor = self.factor + other.factor
-            return self.__class__(self.rank, new_factor, self.space, self.symbol, self.substructure)
+            if new_factor != 0:
+                return self.__class__(self.rank, new_factor, self.space, self.symbol, self.substructure)
+            else:
+                return None
         else:
             return self.CompositeClass(self, other)
 

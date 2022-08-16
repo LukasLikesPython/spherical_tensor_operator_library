@@ -73,19 +73,23 @@ class TestTensorOperator(unittest.TestCase):
 
     def test_add_same(self):
         self.assertEqual("2 * q_1", str(self.basic_block + self.basic_block))
+        self.assertEqual(None, self.basic_block - self.basic_block)
 
     def test_add_other(self):
         self.assertEqual("1 * q_1 + 1 * k_1", str(self.basic_block + self.other_block))
+        self.assertEqual("1 * k_1", str(self.basic_block + self.other_block - self.basic_block))
 
     def test_add_tensor_operator_list(self):
         tensor_list = self.basic_block + self.other_block
         self.assertEqual("2 * q_1 + 1 * k_1", str(tensor_list + self.basic_block))
         self.assertEqual("2 * q_1 + 1 * k_1", str(self.basic_block + tensor_list))
-        
+        self.assertEqual("1 * k_1", str(-1 * self.basic_block + tensor_list))
+
     def test_add_tensor_lists(self):
         tensor_list = self.basic_block + self.other_block
         self.assertEqual("2 * q_1 + 2 * k_1", str(tensor_list + tensor_list))
-
+        self.assertEqual("-1 * k_1", str(tensor_list - (self.basic_block + 2 * self.other_block)))
+        self.assertEqual("", str(tensor_list - tensor_list))
 
 if __name__ == '__main__':
     unittest.main()
