@@ -23,6 +23,17 @@ class TestTensorSpace(unittest.TestCase):
     def test_logical_neq(self):
         self.assertFalse(self.rel == TensorSpace('rel2', 0))
 
+    def test_logical_gt(self):
+        space_a = self.rel + self.spin
+        self.assertTrue(self.rel > space_a)
+        space_b = space_a + self.rel
+        self.assertTrue(space_a > space_b)
+        space_c = space_a + self.spin
+        self.assertTrue(space_c > space_b)
+        space_d = space_b + self.rel
+        space_e = space_c + self.rel
+        self.assertTrue(space_e > space_d)
+        self.assertFalse(space_d > space_e)
 
 
 if __name__ == '__main__':

@@ -1,5 +1,26 @@
+from __future__ import annotations
+from collections.abc import Iterable, Iterator
 
-class TensorSpace(object):
+class SpaceIterator(Iterator):
+    """
+    Following the example from https://refactoring.guru/design-patterns/iterator/python/example
+    """
+    def __init__(self, space: TensorSpace):
+        self._position = 0
+        self._structure_position = 0
+        self._space = space
+        self._substructure = space.substructure
+
+    def __next__(self):
+        try:
+            iter_space = self._substructure[self._structure_position]
+
+        except IndexError:
+            raise StopIteration()
+        return iter_space
+
+
+class TensorSpace(Iterable):
 
     space_dict = {}
 
@@ -57,11 +78,16 @@ class TensorSpace(object):
             return True  # Those should be switched
         elif self.order == other.order:
             if self.substructure and other.substructure:
-                if max([sub.order for sub in self.substructure]) > max([sub.order for sub in other.substructure]):
-                    return True
-                elif self.get_depth() < other.get_depth():
+                if self.get_depth() < other.get_depth():
                     # both have identical order now the deepest substructure loses
                     return True
+                elif self.get_depth() == other.get_depth():
+                    for
+
+                elif max([sub.order for sub in self.substructure]) > max([sub.order for sub in other.substructure]):
+                    return True
+
+
             elif self.substructure:
                 return False  # Objects with substructure have higher rank by choice
             elif other.substructure:
@@ -83,6 +109,9 @@ class TensorSpace(object):
 
     def __ne__(self, other):
         return not self == other
+
+    def __iter__(self) -> SpaceIterator:
+        return SpaceIterator(self)
 
     def get_depth(self):
         if not self.substructure:
