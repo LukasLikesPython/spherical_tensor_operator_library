@@ -234,7 +234,7 @@ class TensorOperator(TensorOperatorInterface):
             if self.space == other.space:
                 new_space = self.space
             else:
-                new_space = [self.space, other.space]
+                new_space = self.space + other.space
             new_symbol = [self._to_expression_no_factor(), other._to_expression_no_factor()]
             # keep track of factors on outermost layer
             tensor_a = deepcopy(self)
@@ -262,7 +262,7 @@ class TensorOperator(TensorOperatorInterface):
             tensor_a, tensor_b = self.substructure
             commute = False
 
-            if tensor_a.space > tensor_b.space:  # space
+            if tensor_a.space > tensor_b.space:
                 commute = True
             elif tensor_a.space == tensor_b.space:
                 if tensor_b.get_depth() > tensor_a.get_depth():  # depth
