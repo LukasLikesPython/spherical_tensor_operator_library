@@ -4,20 +4,65 @@ from collections.abc import Iterable, Iterator
 class SpaceIterator(Iterator):
     """
     Following the example from https://refactoring.guru/design-patterns/iterator/python/example
+
+    We want to have a standardized way to iterate through space couplings. Here is one example how we want the traversal
+    to go for three spaces, labeled 1, 2, and 3
+    {{1 x 2} x {1 x 3}}
+    0. {{1 x 2} x {1 x 3}}
+    1. {1 x 2}
+    2. 1
+    3. 2
+    4. {1 x 3}
+    5. 1
+    6. 3
+
     """
     def __init__(self, space: TensorSpace):
         self._position = 0
-        self._structure_position = 0
-        self._space = space
         self._substructure = space.substructure
+        self._collection = []
+        element_list = [0]
+        while len(element_list) > 0:
+            collection_element = self._get_substructure(element_list)
+            if collection_element:
+                self._collection.append(collection_element)
+                element_list.append(0)
+            else:
+                element_list = element_list[:-1]
+                if element_list[-1] == 1:
+                    # We have to find the last 0 element in the list and switch this to a one. The rest must be removed.
+                    try:
+                        index = element_list[::-1].index(0)
+                    except ValueError:
+                        # We reached the last element
+                        break
+                    element_list = element_list[:-index]
+                element_list[-1] = 1
+
+    def _get_substructure(self, element_list):
+        out_space = self._substructure
+        for pos in element_list[:-1]:
+            out_space = out_space[pos].substructure
+        if out_space:
+            return out_space[element_list[-1]]
+        else:
+            return None
 
     def __next__(self):
         try:
-            iter_space = self._substructure[self._structure_position]
-
+            value = self._collection[self._position]
+            self._position += 1
         except IndexError:
             raise StopIteration()
-        return iter_space
+        return value
+
+    def get_next(self):
+        try:
+            value = self._collection[self._position]
+            self._position += 1
+        except IndexError:
+            return None
+        return value
 
 
 class TensorSpace(Iterable):
@@ -34,7 +79,6 @@ class TensorSpace(Iterable):
             other = self.space_dict[name]
             if not(other.order == self.order and other.substructure == self.substructure):
                 raise AttributeError(f'A space with the name "{name}" and different properties already exists.')
-
 
     @property
     def name(self):
@@ -54,7 +98,6 @@ class TensorSpace(Iterable):
         new_order = space_1.order
         substructure = [space_1, space_2]
         return new_name, new_order, substructure
-
 
     def __str__(self):
         return f"{self.name}-space: order = {self.order}"
@@ -82,12 +125,15 @@ class TensorSpace(Iterable):
                     # both have identical order now the deepest substructure loses
                     return True
                 elif self.get_depth() == other.get_depth():
-                    for
-
-                elif max([sub.order for sub in self.substructure]) > max([sub.order for sub in other.substructure]):
-                    return True
-
-
+                    self_iterator = SpaceIterator(self)
+                    other_iterator = SpaceIterator(other)
+                    next_self = self_iterator.get_next()
+                    other_self = other_iterator.get_next()
+                    while next_self and other_self:
+                        if next_self.order > other_self.order:
+                            return True
+                        next_self = self_iterator.get_next()
+                        other_self = other_iterator.get_next()
             elif self.substructure:
                 return False  # Objects with substructure have higher rank by choice
             elif other.substructure:
@@ -119,9 +165,6 @@ class TensorSpace(Iterable):
         else:
             sub_structure_depth = max([sub_tensor.get_depth() for sub_tensor in self.substructure]) + 1
             return sub_structure_depth
-
-
-
 
 
 if __name__ == "__main__":

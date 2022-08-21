@@ -1,6 +1,7 @@
 import unittest
 from tensor_space import TensorSpace
 
+
 class TestTensorSpace(unittest.TestCase):
 
     spin = TensorSpace('spin', 1)
@@ -34,6 +35,16 @@ class TestTensorSpace(unittest.TestCase):
         space_e = space_c + self.rel
         self.assertTrue(space_e > space_d)
         self.assertFalse(space_d > space_e)
+
+    def test_iterator(self):
+        space_a = self.rel + self.spin
+        self.assertTrue(self.rel > space_a)
+        space_b = self.rel + self.cm
+        space_c = space_a + space_b
+        space_d = space_a + self.spin
+        self.assertEqual(['{rel x spin}', 'rel', 'spin', '{rel x cm}', 'rel', 'cm'], [x.name for x in space_c])
+        self.assertEqual(['rel', 'spin'], [x.name for x in space_a])
+        self.assertEqual(['{rel x spin}', 'rel', 'spin', 'spin'], [x.name for x in space_d])
 
 
 if __name__ == '__main__':
