@@ -1,14 +1,21 @@
 import unittest
 from tensor_operator import TensorOperator
 from tensor_algebra import TensorAlgebra
+from tensor_space import TensorSpace
+
+prior_spin_space = TensorSpace('prior_spin', -1)
+rel_space = TensorSpace('relative', 0)
+spin_space = TensorSpace('spin', 1)
+
+so_space = rel_space + spin_space
 
 
 class TestTensorOperator(unittest.TestCase):
 
-    basic_block = TensorOperator(rank=1, symbol='q', space='relative')
-    other_block = TensorOperator(rank=1, symbol='k', space='relative')
-    other_space = TensorOperator(rank=1, symbol='sig', space='spin')
-    other_space_2 = TensorOperator(rank=1, symbol='sig', space='A-Space')
+    basic_block = TensorOperator(rank=1, symbol='q', space=rel_space)
+    other_block = TensorOperator(rank=1, symbol='k', space=rel_space)
+    other_space = TensorOperator(rank=1, symbol='sig', space=spin_space)
+    other_space_2 = TensorOperator(rank=1, symbol='sig', space=prior_spin_space)
 
     def test_building_block(self):
         self.assertEqual("1 * q_1", str(self.basic_block))
@@ -34,7 +41,7 @@ class TestTensorOperator(unittest.TestCase):
         self.assertEqual("1 * {{k_1 x q_1}_1 x {q_1 x q_1}_2}_2",
                          str(self.basic_block.couple(self.basic_block, 2, 1)
                              .couple((self.basic_block.couple(self.other_block, 1, 1)), 2, 1)))
-        self.assertEqual("relative",
+        self.assertEqual(rel_space,
                          self.basic_block.couple(self.basic_block, 2, 1)
                              .couple((self.basic_block.couple(self.other_block, 1, 1)), 2, 1).space)
         self.assertEqual("1 * {{q_1 x q_1}_0 x k_1}_1",
@@ -42,7 +49,7 @@ class TestTensorOperator(unittest.TestCase):
                              .couple(self.other_block, 1, 1)))
         # Different space
         self.assertEqual("-1 * {q_1 x sig_1}_1", str(self.other_space.couple(self.basic_block, 1, 1)))
-        self.assertEqual(['relative', 'spin'], self.other_space.couple(self.basic_block, 1, 1).space)
+        self.assertEqual(so_space, self.other_space.couple(self.basic_block, 1, 1).space)
         self.assertEqual("1 * {sig_1 x q_1}_1", str(self.other_space_2.couple(self.basic_block, 1, 1)))
 
     def test_couple_tensor_operator_list(self):
