@@ -1,6 +1,7 @@
 from __future__ import annotations
 from collections.abc import Iterable, Iterator
 
+
 class SpaceIterator(Iterator):
     """
     Following the example from https://refactoring.guru/design-patterns/iterator/python/example
@@ -69,10 +70,11 @@ class TensorSpace(Iterable):
 
     space_dict = {}
 
-    def __init__(self, name, order, substructure=None):
+    def __init__(self, name: str, order: int, substructure=None, pure_space: bool = True):
         self._name = name
         self._order = order
         self._substructure = substructure
+        self._pure_space = pure_space
         if name not in self.space_dict.keys():
             self.space_dict[name] = self
         else:
@@ -83,6 +85,10 @@ class TensorSpace(Iterable):
     @property
     def name(self):
         return self._name
+
+    @property
+    def pure_space(self):
+        return self._pure_space
 
     @property
     def order(self):
@@ -102,21 +108,21 @@ class TensorSpace(Iterable):
     def __str__(self):
         return f"{self.name}-space: order = {self.order}"
 
-    def __add__(self, other):
+    def __add__(self, other: TensorSpace):
         if self == other:
             return self
         else:
             new_name = '{' + self.name + ' x ' + other.name + '}'
             new_order = min(self.order, other.order)
-            return self.__class__(new_name, new_order, substructure=[self, other])
+            return self.__class__(new_name, new_order, substructure=[self, other], pure_space=False)
 
-    def __eq__(self, other):
+    def __eq__(self, other: TensorSpace):
         if self.name == other.name:
             return True
         else:
             return False
 
-    def __gt__(self, other):
+    def __gt__(self, other: TensorSpace):
         if self.order > other.order:
             return True  # Those should be switched
         elif self.order == other.order:
@@ -140,20 +146,20 @@ class TensorSpace(Iterable):
                 return True  # Objects with substructure have higher rank by choice
         return False
 
-    def __ge__(self, other):
+    def __ge__(self, other: TensorSpace):
         if self == other:
             return True
         elif self > other:
             return True
         return False
 
-    def __lt__(self, other):
+    def __lt__(self, other: TensorSpace):
         return not self >= other
 
-    def __le__(self, other):
+    def __le__(self, other: TensorSpace):
         return not self > other
 
-    def __ne__(self, other):
+    def __ne__(self, other: TensorSpace):
         return not self == other
 
     def __iter__(self) -> SpaceIterator:
@@ -165,6 +171,20 @@ class TensorSpace(Iterable):
         else:
             sub_structure_depth = max([sub_tensor.get_depth() for sub_tensor in self.substructure]) + 1
             return sub_structure_depth
+
+    def contains(self, other: TensorSpace) -> bool:
+        if self == other:
+            return True
+        if self.get_depth() == 0:
+            return False
+        for space in self:
+            print(space)
+            if space == other:
+                return True
+        return False
+
+
+default_space = TensorSpace('DEFAULT', 99)
 
 
 if __name__ == "__main__":
@@ -180,5 +200,8 @@ if __name__ == "__main__":
     print(so_space > soo_space)
     print(soo_space > so_space)
     print(socm_space > soo_space)
-    print(sso_space > so_space)
+    print(sso_space)
 
+    print(sso_space.contains(cm_space))
+    print(sso_space.contains(spin_space))
+    print(sso_space.contains(relative_space))

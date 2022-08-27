@@ -1,6 +1,8 @@
 from abc import ABC, abstractmethod
+from typing import Union, Optional
 import tensor_algebra
 from copy import deepcopy
+from tensor_space import TensorSpace, default_space
 
 
 class TensorOperatorInterface(ABC):
@@ -62,14 +64,13 @@ class TensorOperatorComposite(TensorOperatorInterface):
             args.append(child * factor)
         return self.__class__(*args)
 
-
     def to_latex(self):
         return " + ".join([child.to_latex() for child in self.children])
 
     def to_expression(self):
         return " + ".join([child.to_expression() for child in self.children])
 
-    def add(self, other):
+    def add(self, other: TensorOperatorInterface):
         if isinstance(other, self.__class__):
             args = self.children + other.children  # This keeps a flat hierarchy
         else:
@@ -77,7 +78,7 @@ class TensorOperatorComposite(TensorOperatorInterface):
         new_object = self.__class__(*args)
         return new_object
 
-    def couple(self, other, rank, factor):
+    def couple(self, other: TensorOperatorInterface, rank, factor):
         if isinstance(other, self.__class__):
             args = [child.couple(other_child, rank, factor) for child in self.children for other_child in
                     other.children]
@@ -110,7 +111,8 @@ class TensorOperator(TensorOperatorInterface):
     CompositeClass = TensorOperatorComposite
     TensorAlgebra = tensor_algebra.TensorAlgebra
 
-    def __init__(self, rank=0, factor=1, space='1', symbol=None, substructure=None):
+    def __init__(self, rank, factor=1, space: TensorSpace = default_space, symbol: Union[None, str, list[str]] = None,
+                 substructure=None):
         self._rank = rank
         self._factor = factor
         self._space = space
@@ -280,32 +282,33 @@ class TensorOperator(TensorOperatorInterface):
             self.space = new_top.space
             self.substructure = new_top.substructure
 
+    def get_space_structure(self):
+        depth = self.get_depth()
+        if depth == 0:
+            return self.space
+        elif depth == 1:
+            tensor_a, tensor_b = self.substructure
+            return [tensor_a.space, tensor_b.space]
+        else:
+            tensors_a, tensors_b = self.substructure
+            return [tensors_a.get_space_structure(), tensors_b.get_space_structure()]
+
+
+
+
 
 if __name__ == "__main__":
-    top = TensorOperator(rank=1, factor=1, space='rel', symbol="q")
-    ktop = TensorOperator(rank=1, factor=1, space='rel', symbol="k")
-    other_space = TensorOperator(rank=1, symbol='sig', space='spin')
+    rel_space = TensorSpace('rel', 0)
+    spin_space = TensorSpace('spin', 1)
+    top = TensorOperator(rank=1, factor=1, space=rel_space, symbol="q")
+    ktop = TensorOperator(rank=1, factor=1, space=rel_space, symbol="k")
+    other_space = TensorOperator(rank=1, symbol='sig', space=spin_space)
     qsq = top.couple(top, 0, 3)
-    print(qsq)
-    print(top)
-    print('Mutliplication')
-    tlist = qsq + 2 * top
-    print(tlist)
-    print(top)
-    print('Addition')
-    tlist = tlist + qsq + top + top + qsq
-    print(tlist)
-
-    tlist = tlist + (tlist + ktop)
-    print(tlist)
-    print('Coupling')
-    ntlist = tlist.couple(ktop, 1, 1)
-    print(ntlist)
-    ntlist = ntlist.couple(ktop, 1, 1)
-    print(ntlist)
-    print(tlist)
-
-    print(qsq.get_depth())
-    qsig = top.couple(other_space, 1, 1)
-    print(qsig.get_depth())
-    print(ntlist.children[0].get_depth())
+    new_top = qsq.couple(other_space, 1, 1)
+    new_top2 = top.couple(other_space, 2, 1).couple(top.couple(other_space, 2, 1), 0, 1)
+    new_top3 = new_top2.couple(qsq, 0, 1)
+    print(new_top.get_depth())
+    print(qsq.get_space_structure())
+    print(new_top.get_space_structure())
+    print(new_top2.get_space_structure())
+    print(new_top3.get_space_structure())
