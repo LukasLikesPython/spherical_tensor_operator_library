@@ -3,7 +3,8 @@ from typing import Optional, Union
 from sympy.physics.wigner import clebsch_gordan, wigner_6j, wigner_9j
 from sympy import sqrt
 from math import prod
-from functools import singledispatch  # TODO  look into this for function Overloading
+
+from tensor_operator import TensorOperator, TensorOperatorComposite
 
 
 class TensorAlgebra(object):
@@ -24,14 +25,7 @@ class TensorAlgebra(object):
         :param args: either a single integer or multiple integers
         :return: the product of the input
         """
-        return prod([sqrt(2 * arg + 1) for arg in args])
-
-    @staticmethod
-    def commute(tensor_op) -> TensorOperator:
-        tensor_a, tensor_b = tensor_op.substructure
-        new_factor = pow(-1, tensor_a.rank + tensor_b.rank - tensor_op.rank)
-        new_top = tensor_b.couple(tensor_a, tensor_op.rank, new_factor * tensor_op.factor, order=False)
-        return new_top
+        return prod([sqrt(2 * arg + 1) for arg in args])\
 
     @staticmethod
     def _can_be_recoupled_ABxAB_AAxBB(tensor_op: TensorOperator) -> bool:
@@ -53,6 +47,7 @@ class TensorAlgebra(object):
         if tensor_a.space == tensor_c.space and tensor_b.space == tensor_d.space:
             return True
         return False
+
     @staticmethod
     def _can_be_recoupled_AAxAB_AAAxB(tensor_op: TensorOperator) -> bool:
         """
@@ -71,7 +66,7 @@ class TensorAlgebra(object):
         tensor_a, tensor_b = first_pair.substructure
         tensor_c, tensor_d = second_pair.substructure
         if tensor_a.space <= tensor_b.space and tensor_a.space <= tensor_c.space and \
-                 max([tensor_a.space.order, tensor_b.space.order, tensor_c.space.order]) < tensor_d.space.order:
+                max([tensor_a.space.order, tensor_b.space.order, tensor_c.space.order]) < tensor_d.space.order:
             return True
         return False
 
@@ -122,21 +117,9 @@ class TensorAlgebra(object):
         return False
 
     @classmethod
-    def recouple(cls, tensor_op: Union[TensorOperator, TensorOperatorComposite], factor=1,
-                 verbose=True) -> TensorOperator:
-        # TODO when an intermediary recoupling changes the type to TensorOperatorComposite, the system crasehs
+    def _perform_recoupling(cls, tensor_op: TensorOperator,
+                            factor=1) -> Union[None, TensorOperator, TensorOperatorComposite]:
         out_tensor = tensor_op
-
-        if out_tensor.get_depth() > 2:  # The tensor operator has a substructure that can potentially be recoupled
-            sub_tensor_1, sub_tensor_2 = out_tensor.substructure
-            new_sub_tensor_1 = cls.recouple(sub_tensor_1, verbose=True)
-            new_sub_tensor_2 = cls.recouple(sub_tensor_2, verbose=True)
-            if new_sub_tensor_1 != sub_tensor_1 or new_sub_tensor_2 != sub_tensor_2:
-                out_tensor = new_sub_tensor_1.couple(new_sub_tensor_2, out_tensor.rank, factor=1)
-
-        if isinstance(out_tensor, TensorOperatorComposite):
-            pass # TODO
-
         if cls._can_be_recoupled_ABxAB_AAxBB(out_tensor):
             out_tensor = cls._recouple_ABxCD_ACxBD(out_tensor, factor)
             return out_tensor
@@ -149,10 +132,42 @@ class TensorAlgebra(object):
         if cls._can_be_recoupled_ABxC_AxBC(out_tensor):
             out_tensor = cls._recouple_ABxC_ACxB(out_tensor, factor)
             return out_tensor
+        return None
+
+    @classmethod
+    def _perform_recoupling_composite(cls, tensor_op: TensorOperatorComposite,
+                                      factor=1) -> Union[None, TensorOperator, TensorOperatorComposite]:
+        out_tensor = sum(cls._perform_recoupling(child, factor) for child in tensor_op.children[1:]
+                         if cls._perform_recoupling(child, factor))
+        return out_tensor
+
+    @classmethod
+    def recouple(cls, tensor_op: Union[TensorOperator, TensorOperatorComposite], factor=1,
+                 verbose=True) -> Union[TensorOperator, TensorOperatorComposite]:
+        # TODO when an intermediary recoupling changes the type to TensorOperatorComposite, the system crasehs
+        out_tensor = tensor_op
+
+        if out_tensor.get_depth() > 2:  # The tensor operator has a substructure that can potentially be recoupled
+            sub_tensor_1, sub_tensor_2 = out_tensor.substructure
+            new_sub_tensor_1 = cls.recouple(sub_tensor_1, verbose=True)
+            new_sub_tensor_2 = cls.recouple(sub_tensor_2, verbose=True)
+            if new_sub_tensor_1 != sub_tensor_1 or new_sub_tensor_2 != sub_tensor_2:
+                out_tensor = new_sub_tensor_1.couple(new_sub_tensor_2, out_tensor.rank, factor=1)
+
+        if isinstance(out_tensor, TensorOperator):
+            out_tensor = cls._perform_recoupling(out_tensor, factor)
+        elif isinstance(out_tensor, TensorOperatorComposite):
+            out_tensor = cls._perform_recoupling_composite(tensor_op, factor)
+        else:
+            print('[DEBUG] We should not end up in this line in the recouple function form the tensor_algebra module')
+            out_tensor = None
+
+        if out_tensor:
+            return out_tensor
 
         if verbose:
             print(f'[INFO] Recoupling was not possible for tensor operator {tensor_op}')
-        return out_tensor
+        return tensor_op
 
     @classmethod
     def _recouple_ABxCD_ACxBD(cls, tensor_op: TensorOperator, factor=1) -> Optional[TensorOperator]:
@@ -311,18 +326,16 @@ class TensorAlgebra(object):
 
 
 if __name__ == "__main__":
-    from tensor_operator import TensorOperator, TensorOperatorComposite  # TODO why is it ok to import this here for the annotations
     from tensor_transformation import TensorFromVectors
+    from tensor_space import TensorSpace
+    rel_space = TensorSpace('rel', 0)
+    spin_space = TensorSpace('spin', 1)
 
-    q = TensorOperator(rank=1, symbol="q", space="rel")
-    sig1 = TensorOperator(rank=1, symbol="sig1", space="spin")
-    sig2 = TensorOperator(rank=1, symbol="sig2", space="spin")
+    q = TensorOperator(rank=1, symbol="q", space=rel_space)
+    sig1 = TensorOperator(rank=1, symbol="sig1", space=spin_space)
+    sig2 = TensorOperator(rank=1, symbol="sig2", space=spin_space)
     tensor = TensorFromVectors.scalar_product(q, sig1). \
         couple(TensorFromVectors.scalar_product(q, sig2), 0, 1)
     print(tensor)
     new_tensor_op = TensorAlgebra.recouple(tensor)
     print(new_tensor_op)
-    print(new_tensor_op.substructure[0].space)
-    print()
-    tensor = TensorFromVectors.scalar_product(q, q)
-    print(wigner_9j(1, 1, 0, 1, 1, 0, 2, 2, 0) * 5 * 3)

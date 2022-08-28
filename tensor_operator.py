@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
-from typing import Union, Optional
-import tensor_algebra
+from typing import Union
 from copy import deepcopy
+
 from tensor_space import TensorSpace, default_space
 
 
@@ -55,7 +55,16 @@ class TensorOperatorComposite(TensorOperatorInterface):
     """
 
     def __init__(self, *args):
-        self.children = [arg for arg in args if arg]
+        self._children = [arg for arg in args if arg]
+        self._simplify()
+
+    @property
+    def children(self):
+        return self._children
+
+    @children.setter
+    def children(self, children):
+        self._children = children
         self._simplify()
 
     def __mul__(self, factor):
@@ -101,15 +110,13 @@ class TensorOperatorComposite(TensorOperatorInterface):
                     child += other_child
             if child:
                 new_children.append(child)
-        self.children = new_children
+        self._children = new_children
 
 
 class TensorOperator(TensorOperatorInterface):
     """
 
     """
-    CompositeClass = TensorOperatorComposite
-    TensorAlgebra = tensor_algebra.TensorAlgebra
 
     def __init__(self, rank, factor=1, space: TensorSpace = default_space, symbol: Union[None, str, list[str]] = None,
                  substructure=None):
@@ -178,7 +185,7 @@ class TensorOperator(TensorOperatorInterface):
             return sub_structure_depth
 
     def add(self, other):
-        if isinstance(other, self.CompositeClass):
+        if isinstance(other, TensorOperatorComposite):
             return other + self
         elif self.symbol == other.symbol and self.rank == other.rank:
             new_factor = self.factor + other.factor
@@ -187,7 +194,7 @@ class TensorOperator(TensorOperatorInterface):
             else:
                 return None
         else:
-            return self.CompositeClass(self, other)
+            return TensorOperatorComposite(self, other)
 
     def to_latex(self):
         return str(self.factor) + " * " \
@@ -219,9 +226,9 @@ class TensorOperator(TensorOperatorInterface):
         :param order: default True, flag that indicates whether the coupled result shall be ordered
         :return: A new, coupled instance of TensorOperator or TensorOperatorComposite (depending on "other")
         """
-        if isinstance(other, self.CompositeClass):
+        if isinstance(other, TensorOperatorComposite):
             args = [self.couple(other_child, rank, factor) for other_child in other.children]
-            return self.CompositeClass(*args)
+            return TensorOperatorComposite(*args)
         elif isinstance(other, self.__class__):
             # Coupling two operators to the new rank is not possible
             if not abs(self.rank - other.rank) <= rank <= self.rank + other.rank:
@@ -249,6 +256,12 @@ class TensorOperator(TensorOperatorInterface):
                 new_object.order()
             return new_object
 
+    def commute(self):
+        tensor_a, tensor_b = self.substructure
+        new_factor = pow(-1, tensor_a.rank + tensor_b.rank - self.rank)
+        new_top = tensor_b.couple(tensor_a, self.rank, new_factor * self.factor, order=False)
+        return new_top
+
     def order(self):
         """
         Order the tensor operators according to
@@ -274,7 +287,7 @@ class TensorOperator(TensorOperatorInterface):
                     commute = True
 
             if commute:
-                new_top = self.TensorAlgebra.commute(self)
+                new_top = self.commute()
 
         if new_top:
             self.factor = new_top.factor
