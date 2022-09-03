@@ -57,6 +57,12 @@ class TestTensorAlgebra(unittest.TestCase):
             '-2*sqrt(3) * {{{k_1 x k_1}_0 x {sig1_1 x sig2_1}_0}_0 x {P_1 x P_1}_0}_0 + sqrt(15) * {{{k_1 x k_1}_2 x {sig1_1 x sig2_1}_0}_2 x {P_1 x P_1}_2}_0',
             str(TensorAlgebra.recouple(operator)))
 
+        operator = TensorFromVectors.scalar_product(TensorFromVectors.vector_product(self.sig1, self.sig2),
+                                                    TensorFromVectors.vector_product(self.q, self.k)).\
+            couple(TensorFromVectors.scalar_product(self.q, self.P), 0, 1)
+        self.assertEqual(
+            '-2 * {{{{k_1 x q_1}_1 x q_1}_0 x {sig1_1 x sig2_1}_1}_1 x P_1}_0 + -2*sqrt(3) * {{{{k_1 x q_1}_1 x q_1}_1 x {sig1_1 x sig2_1}_1}_1 x P_1}_0 + -2*sqrt(5) * {{{{k_1 x q_1}_1 x q_1}_2 x {sig1_1 x sig2_1}_1}_1 x P_1}_0',
+            str(TensorAlgebra.recouple(operator)))
 
 
 

@@ -9,6 +9,10 @@
 # - Factory pattern for operator creation?
 # - Space class has iterator pattern
 
+# Unit tests superhelpful when refactoring
+# Git super helpful to see latest changes.
+#
+
 def print_hi(name):
     # Use a breakpoint in the code line below to debug your script.
     print(f'Hi, {name}')  # Press Ctrl+F8 to toggle the breakpoint.

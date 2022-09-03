@@ -7,7 +7,7 @@ from math import prod
 from tensor_operator import TensorOperator, TensorOperatorComposite
 
 
-DEBUG_MODE = False
+DEBUG_MODE = True
 
 
 class TensorAlgebra(object):
@@ -28,7 +28,7 @@ class TensorAlgebra(object):
         :param args: either a single integer or multiple integers
         :return: the product of the input
         """
-        return prod([sqrt(2 * arg + 1) for arg in args])\
+        return prod([sqrt(2 * arg + 1) for arg in args])
 
     @staticmethod
     def _can_be_recoupled_ABxAB_AAxBB(tensor_op: TensorOperator) -> bool:
@@ -115,7 +115,30 @@ class TensorAlgebra(object):
         if tensor_a.space == tensor_b.space or tensor_a.space == tensor_c.space:
             return False
         elif tensor_a.space.order < min([tensor_c.space.order, tensor_b.space.order]) and \
-                (tensor_b.space.contians(tensor_c.space) or tensor_c.space.contains(tensor_b.space)):
+                (tensor_b.space.contains(tensor_c.space) or tensor_c.space.contains(tensor_b.space)):
+            return True
+        return False
+
+    @staticmethod
+    def _can_be_recoupled_AxBC_ABxC(tensor_op: TensorOperator) -> bool:
+        """
+        Checks the subspaces of this operator. If the operator subspace structure returns one mixed state and one pure
+        state, with space one = A and space two = BxC coupled like A x (BxC) we can recouple it to (AxB) x C given that
+        either space B != space C and space A == space B.
+
+        :param tensor_op: A TensorOperator for which we want to check whether it can be recoupled.
+        :return: bool True or False. True -> Can be recoupled. False -> Cannot be recoupled.
+        """
+        if not tensor_op.substructure:
+            return False
+        tensor_a, second_pair = tensor_op.substructure
+        if not second_pair.substructure:
+            return False
+        tensor_b, tensor_c = second_pair.substructure
+        if tensor_b.space == tensor_c.space or tensor_a.space == tensor_c.space:
+            return False
+        elif tensor_c.space.order >= max([tensor_a.space.order, tensor_b.space.order]) and \
+                (tensor_a.space.contains(tensor_b.space) or tensor_b.space.contains(tensor_a.space)):
             return True
         return False
 
@@ -134,6 +157,9 @@ class TensorAlgebra(object):
             return out_tensor
         if cls._can_be_recoupled_ABxC_AxBC(out_tensor):
             out_tensor = cls._recouple_ABxC_ACxB(out_tensor, factor)
+            return out_tensor
+        if cls._can_be_recoupled_AxBC_ABxC(out_tensor):
+            out_tensor = cls._recouple_AxBC_ABxC(out_tensor, factor)
             return out_tensor
         return None
 
@@ -201,8 +227,8 @@ class TensorAlgebra(object):
         first_pair, second_pair = tensor_op.substructure
         tensor_a, tensor_b = first_pair.substructure
         tensor_c, tensor_d = second_pair.substructure
-        if tensor_a.space != tensor_c.space or tensor_b.space != tensor_d.space:
-            return None  # This is not the correct recoupling function for the given operator
+        #if tensor_a.space != tensor_c.space or tensor_b.space != tensor_d.space:
+        #    return None  # This is not the correct recoupling function for the given operator
         new_factor = tensor_op.factor * factor
         a = tensor_a.rank
         b = tensor_b.rank
@@ -248,8 +274,8 @@ class TensorAlgebra(object):
         first_pair, second_pair = tensor_op.substructure
         tensor_a, tensor_b = first_pair.substructure
         tensor_c, tensor_d = second_pair.substructure
-        if not (tensor_a.space == tensor_b.space and tensor_c.space != tensor_d.space):
-            return None  # This is not the correct recoupling function for the given operator
+        #if not (tensor_a.space == tensor_b.space and tensor_c.space != tensor_d.space):
+        #    return None  # This is not the correct recoupling function for the given operator
         new_factor = tensor_op.factor * factor
         c = tensor_c.rank
         d = tensor_d.rank
@@ -289,8 +315,8 @@ class TensorAlgebra(object):
         """
         first_pair, tensor_c = tensor_op.substructure
         tensor_a, tensor_b = first_pair.substructure
-        if tensor_a.space == tensor_b.space or tensor_b.space <= tensor_c.space:
-            return None  # This is not the correct recoupling function for the given operator
+        #if tensor_a.space == tensor_b.space or tensor_b.space <= tensor_c.space:
+        #    return None  # This is not the correct recoupling function for the given operator
         new_factor = tensor_op.factor * factor
         a = tensor_a.rank
         b = tensor_b.rank
@@ -329,8 +355,8 @@ class TensorAlgebra(object):
 
         first_pair, tensor_c = tensor_op.substructure
         tensor_a, tensor_b = first_pair.substructure
-        if tensor_a.space == tensor_b.space or tensor_b.space != tensor_c.space:
-            return None  # This is not the correct recoupling function for the given operator
+        #if tensor_a.space == tensor_b.space or tensor_b.space != tensor_c.space:
+        #    return None  # This is not the correct recoupling function for the given operator
         a = tensor_a.rank
         b = tensor_b.rank
         c = tensor_c.rank
@@ -354,18 +380,54 @@ class TensorAlgebra(object):
             print(tensor_op, '->', out_tensor)
         return out_tensor
 
+    @classmethod
+    def _recouple_AxBC_ABxC(cls, tensor_op: TensorOperator, factor=1, debug=DEBUG_MODE) -> Optional[TensorOperator]:
+        """
+        Tensor recoupling of the form
+        A_a  x (B_b x C_c)_bc -> (A_a x B_b)_ab x C_c
+        The assumption is, that these operators are already ordered according to their spaces within the brackets.
+        This recoupling scheme is applied when space B != space C and space A == space B.
+
+        :param tensor_op: the tensor operator that should be recoupled
+        :param factor: a factor that appears during the recoupling, default is 1
+        :return: recoupled tensor operator of type TensorOperator or TensorOperatorComposite
+        """
+        out_tensor = tensor_op.commute()
+        pair, tensor_a = out_tensor.substructure
+        commute_pair = pair.commute()
+        out_tensor = commute_pair.couple(tensor_a, tensor_op.rank, out_tensor.factor, order=False)
+        #if tensor_c.space == tensor_b.space:
+        #    return None  # This is not the correct recoupling function for the given operator
+        out_tensor = cls._recouple_ABxC_AxBC(out_tensor)
+
+        if debug:
+            print('[DEBUG] recouple AxBC -> ABxC')
+            print(tensor_op, '->', out_tensor)
+        return out_tensor
+
+
 
 if __name__ == "__main__":
     from tensor_transformation import TensorFromVectors
     from tensor_space import TensorSpace
     rel_space = TensorSpace('rel', 0)
     spin_space = TensorSpace('spin', 1)
+    cm_space = TensorSpace('cm', 2)
 
-    q = TensorOperator(rank=1, symbol="q", space=rel_space)
-    sig1 = TensorOperator(rank=1, symbol="sig1", space=spin_space)
-    sig2 = TensorOperator(rank=1, symbol="sig2", space=spin_space)
-    tensor = TensorFromVectors.scalar_product(q, sig1). \
-        couple(TensorFromVectors.scalar_product(q, sig2), 0, 1)
-    print(tensor)
-    new_tensor_op = TensorAlgebra.recouple(tensor)
-    print(new_tensor_op)
+    q = TensorOperator(rank=1, symbol='q', space=rel_space)
+    k = TensorOperator(rank=1, symbol='k', space=rel_space)
+    P = TensorOperator(rank=1, symbol='P', space=cm_space)
+    sig1 = TensorOperator(rank=1, symbol='sig1', space=spin_space)
+    sig2 = TensorOperator(rank=1, symbol='sig2', space=spin_space)
+
+    operator = TensorFromVectors.scalar_product(TensorFromVectors.vector_product(sig1, sig2),
+                                                TensorFromVectors.vector_product(q, k)).\
+                couple(TensorFromVectors.scalar_product(q, P), 0, 1)
+
+    print('First')
+    first_rec = TensorAlgebra.recouple(operator)
+    print(first_rec)
+
+    print('Second')
+    second_rec = TensorAlgebra.recouple(first_rec)
+    print(second_rec)

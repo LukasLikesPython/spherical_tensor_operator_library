@@ -257,10 +257,13 @@ class TensorOperator(TensorOperatorInterface):
             return new_object
 
     def commute(self):
-        tensor_a, tensor_b = self.substructure
-        new_factor = pow(-1, tensor_a.rank + tensor_b.rank - self.rank)
-        new_top = tensor_b.couple(tensor_a, self.rank, new_factor * self.factor, order=False)
-        return new_top
+        if self.substructure:
+            tensor_a, tensor_b = self.substructure
+            new_factor = pow(-1, tensor_a.rank + tensor_b.rank - self.rank)
+            new_top = tensor_b.couple(tensor_a, self.rank, new_factor * self.factor, order=False)
+            return new_top
+        else:
+            return None
 
     def order(self):
         """
