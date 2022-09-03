@@ -16,6 +16,13 @@ class TestTensorOperator(unittest.TestCase):
     other_block = TensorOperator(rank=1, symbol='k', space=rel_space)
     other_space = TensorOperator(rank=1, symbol='sig', space=spin_space)
     other_space_2 = TensorOperator(rank=1, symbol='sig', space=prior_spin_space)
+    qk0_block = basic_block.couple(other_block, 0, 1, False)
+    qk1_block = basic_block.couple(other_block, 1, 1, False)
+    qk2_block = basic_block.couple(other_block, 2, 1, False)
+    kq0_block = other_block.couple(basic_block, 0, 1, False)
+    kq1_block = other_block.couple(basic_block, 1, 1, False)
+    kq2_block = other_block.couple(basic_block, 2, 1, False)
+
 
     def test_building_block(self):
         self.assertEqual("1 * q_1", str(self.basic_block))
@@ -97,6 +104,11 @@ class TestTensorOperator(unittest.TestCase):
         self.assertEqual("2 * q_1 + 2 * k_1", str(tensor_list + tensor_list))
         self.assertEqual("-1 * k_1", str(tensor_list - (self.basic_block + 2 * self.other_block)))
         self.assertEqual("", str(tensor_list - tensor_list))
+
+    def test_commute(self):
+        self.assertEqual(self.qk0_block, self.kq0_block.commute())
+        self.assertEqual(-1 * self.qk1_block, self.kq1_block.commute())
+        self.assertEqual(self.qk2_block, self.kq2_block.commute())
 
 if __name__ == '__main__':
     unittest.main()

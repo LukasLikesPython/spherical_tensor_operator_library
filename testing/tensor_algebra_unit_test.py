@@ -23,10 +23,6 @@ class TestTensorAlgebra(unittest.TestCase):
     kq1_block = k.couple(q, 1, 1, False)
     kq2_block = k.couple(q, 2, 1, False)
 
-    def test_commute(self):
-        self.assertEqual(self.qk0_block, TensorAlgebra.commute(self.kq0_block))
-        self.assertEqual(-1 * self.qk1_block, TensorAlgebra.commute(self.kq1_block))
-        self.assertEqual(self.qk2_block, TensorAlgebra.commute(self.kq2_block))
 
     def test_recouple_ABxCD_ACxBD(self):
         operator = TensorFromVectors.scalar_product(self.q, self.sig1). \
@@ -47,13 +43,22 @@ class TestTensorAlgebra(unittest.TestCase):
         self.assertEqual('sqrt(6) * {{q_1 x sig1_1}_1 x P_1}_0', str(TensorAlgebra.recouple(operator)))
 
     def test_complicated_recouple(self):
+        operator = TensorFromVectors.scalar_product(self.k, self.k).\
+            couple(TensorFromVectors.scalar_product(self.P, self.P), 0, 1).\
+            couple(TensorFromVectors.scalar_product(self.sig1, self.sig2), 0, 1)
+        self.assertEqual(
+            '-3*sqrt(3) * {{{k_1 x k_1}_0 x {sig1_1 x sig2_1}_0}_0 x {P_1 x P_1}_0}_0',
+            str(TensorAlgebra.recouple(operator)))
+
         operator = TensorFromVectors.scalar_product(TensorFromVectors.vector_product(self.k, self.P),
                                                     TensorFromVectors.vector_product(self.k, self.P)).\
             couple(TensorFromVectors.scalar_product(self.sig1, self.sig2), 0, 1)
         self.assertEqual(
             '-2*sqrt(3) * {{{k_1 x k_1}_0 x {sig1_1 x sig2_1}_0}_0 x {P_1 x P_1}_0}_0 + sqrt(15) * {{{k_1 x k_1}_2 x {sig1_1 x sig2_1}_0}_2 x {P_1 x P_1}_2}_0',
-
             str(TensorAlgebra.recouple(operator)))
+
+
+
 
 if __name__ == '__main__':
     unittest.main()

@@ -137,30 +137,34 @@ class TensorAlgebra(object):
     @classmethod
     def _perform_recoupling_composite(cls, tensor_op: TensorOperatorComposite,
                                       factor=1) -> Union[None, TensorOperator, TensorOperatorComposite]:
-        out_tensor = sum(cls._perform_recoupling(child, factor) for child in tensor_op.children[1:]
-                         if cls._perform_recoupling(child, factor))
+        out_tensor = cls._perform_recoupling(tensor_op.children[0], factor)
+        for child in tensor_op.children[1:]:
+            res = cls._perform_recoupling(child, factor)
+            if not res:
+                continue
+            out_tensor += res
+
         return out_tensor
+
+    @classmethod
 
     @classmethod
     def recouple(cls, tensor_op: Union[TensorOperator, TensorOperatorComposite], factor=1,
                  verbose=True) -> Union[TensorOperator, TensorOperatorComposite]:
-        # TODO when an intermediary recoupling changes the type to TensorOperatorComposite, the system crasehs
+
         out_tensor = tensor_op
 
         if out_tensor.get_depth() > 2:  # The tensor operator has a substructure that can potentially be recoupled
             sub_tensor_1, sub_tensor_2 = out_tensor.substructure
-            new_sub_tensor_1 = cls.recouple(sub_tensor_1, verbose=True)
-            new_sub_tensor_2 = cls.recouple(sub_tensor_2, verbose=True)
+            new_sub_tensor_1 = cls.recouple(sub_tensor_1, verbose=False)
+            new_sub_tensor_2 = cls.recouple(sub_tensor_2, verbose=False)
             if new_sub_tensor_1 != sub_tensor_1 or new_sub_tensor_2 != sub_tensor_2:
                 out_tensor = new_sub_tensor_1.couple(new_sub_tensor_2, out_tensor.rank, factor=1)
 
         if isinstance(out_tensor, TensorOperator):
             out_tensor = cls._perform_recoupling(out_tensor, factor)
         elif isinstance(out_tensor, TensorOperatorComposite):
-            out_tensor = cls._perform_recoupling_composite(tensor_op, factor)
-        else:
-            print('[DEBUG] We should not end up in this line in the recouple function form the tensor_algebra module')
-            out_tensor = None
+            out_tensor = cls._perform_recoupling_composite(out_tensor, factor)
 
         if out_tensor:
             return out_tensor
