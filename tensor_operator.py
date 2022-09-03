@@ -73,6 +73,16 @@ class TensorOperatorComposite(TensorOperatorInterface):
             args.append(child * factor)
         return self.__class__(*args)
 
+    def __eq__(self, other):
+        if not isinstance(other, self.__class__):
+            return False
+        if len(self.children) != len(other.children):
+            return False
+        return all([child1 == child2 for child1, child2 in zip(self.children, other.children)])
+
+    def __ne__(self, other):
+        return not self.__eq__(other)
+
     def to_latex(self):
         return " + ".join([child.to_latex() for child in self.children])
 
@@ -140,6 +150,9 @@ class TensorOperator(TensorOperatorInterface):
             return True
         else:
             return False
+
+    def __ne__(self, other):
+        return not self.__eq__(other)
 
     @property
     def rank(self):

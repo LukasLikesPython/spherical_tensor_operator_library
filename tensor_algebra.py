@@ -7,7 +7,7 @@ from math import prod
 from tensor_operator import TensorOperator, TensorOperatorComposite
 
 
-DEBUG_MODE = True
+DEBUG_MODE = False
 
 
 class TensorAlgebra(object):
@@ -47,7 +47,7 @@ class TensorAlgebra(object):
             return False
         tensor_a, tensor_b = first_pair.substructure
         tensor_c, tensor_d = second_pair.substructure
-        if tensor_a.space == tensor_c.space and tensor_b.space == tensor_d.space:
+        if tensor_a.space == tensor_c.space and tensor_b.space == tensor_d.space and tensor_a.space != tensor_b.space:
             return True
         return False
 
@@ -156,12 +156,9 @@ class TensorAlgebra(object):
             out_tensor = cls._recouple_ABxC_ACxB(out_tensor, factor)
             return out_tensor
         if cls._can_be_recoupled_ABxC_AxBC(out_tensor):
-            out_tensor = cls._recouple_ABxC_ACxB(out_tensor, factor)
+            out_tensor = cls._recouple_ABxC_AxBC(out_tensor, factor)
             return out_tensor
-        if cls._can_be_recoupled_AxBC_ABxC(out_tensor):
-            out_tensor = cls._recouple_AxBC_ABxC(out_tensor, factor)
-            return out_tensor
-        return None
+        return out_tensor
 
     @classmethod
     def _perform_recoupling_composite(cls, tensor_op: TensorOperatorComposite, factor=1) \
@@ -178,6 +175,20 @@ class TensorAlgebra(object):
     @classmethod
     def _recouple_substructure(cls, tensor_op: Union[TensorOperator, TensorOperatorComposite]) \
             -> Union[None, TensorOperator, TensorOperatorComposite]:
+        if isinstance(tensor_op, TensorOperator):
+            return cls._recouple_basic_substructure(tensor_op)
+        elif isinstance(tensor_op, TensorOperatorComposite):
+            out_tensor = cls._recouple_basic_substructure(tensor_op.children[0])
+            for child in tensor_op.children[1:]:
+                res = cls._recouple_basic_substructure(child)
+                if not res:
+                    continue
+                out_tensor += res
+            return out_tensor
+
+    @classmethod
+    def _recouple_basic_substructure(cls, tensor_op: Union[TensorOperator, TensorOperatorComposite]) \
+            -> Union[None, TensorOperator, TensorOperatorComposite]:
         """
         Idea: Recoupling should take place starting from the innermost operators going to the outermost operators.
         A recursive call to the recouple method takes care of this.
@@ -188,29 +199,37 @@ class TensorAlgebra(object):
         out_tensor = tensor_op
         if out_tensor.get_depth() > 2:  # The tensor operator has a substructure that can potentially be recoupled
             sub_tensor_1, sub_tensor_2 = out_tensor.substructure
-            new_sub_tensor_1 = cls.recouple(sub_tensor_1, verbose=False)
-            new_sub_tensor_2 = cls.recouple(sub_tensor_2, verbose=False)
+            new_sub_tensor_1 = cls.recouple(sub_tensor_1, verbose=False, outer_loop=False)
+            new_sub_tensor_2 = cls.recouple(sub_tensor_2, verbose=False, outer_loop=False)
             if new_sub_tensor_1 != sub_tensor_1 or new_sub_tensor_2 != sub_tensor_2:
                 out_tensor = new_sub_tensor_1.couple(new_sub_tensor_2, out_tensor.rank, out_tensor.factor)
         return out_tensor
 
     @classmethod
-    def recouple(cls, tensor_op: Union[TensorOperator, TensorOperatorComposite], factor=1,
-                 verbose=True) -> Union[TensorOperator, TensorOperatorComposite]:
-
+    def _recouple_step(cls, tensor_op, factor):
         out_tensor = cls._recouple_substructure(tensor_op)  # First recouple innermost layers
 
         if isinstance(out_tensor, TensorOperator):
             out_tensor = cls._perform_recoupling(out_tensor, factor)
         elif isinstance(out_tensor, TensorOperatorComposite):
             out_tensor = cls._perform_recoupling_composite(out_tensor, factor)
+        return out_tensor
 
-        if out_tensor:
-            return out_tensor
+    @classmethod
+    def recouple(cls, tensor_op: Union[TensorOperator, TensorOperatorComposite], factor=1, verbose=True,
+                 outer_loop=True) -> Union[TensorOperator, TensorOperatorComposite]:
 
-        if verbose:
-            print(f'[INFO] Recoupling was not possible for tensor operator {tensor_op}')
-        return tensor_op
+        out_tensor = cls._recouple_step(tensor_op, factor)
+
+        if out_tensor == tensor_op:
+            if verbose:
+                print(f'[INFO] Recoupling was not possible for tensor operator {tensor_op}')
+        if out_tensor != tensor_op and outer_loop:
+            prev_tensor = None
+            while prev_tensor != out_tensor:  # Repeat recoupling steps until no further change happens
+                prev_tensor = out_tensor
+                out_tensor = cls.recouple(out_tensor, factor, verbose=False, outer_loop=False)
+        return out_tensor
 
     @classmethod
     def _recouple_ABxCD_ACxBD(cls, tensor_op: TensorOperator, factor=1, debug=DEBUG_MODE) -> Optional[TensorOperator]:
@@ -227,8 +246,6 @@ class TensorAlgebra(object):
         first_pair, second_pair = tensor_op.substructure
         tensor_a, tensor_b = first_pair.substructure
         tensor_c, tensor_d = second_pair.substructure
-        #if tensor_a.space != tensor_c.space or tensor_b.space != tensor_d.space:
-        #    return None  # This is not the correct recoupling function for the given operator
         new_factor = tensor_op.factor * factor
         a = tensor_a.rank
         b = tensor_b.rank
@@ -272,10 +289,7 @@ class TensorAlgebra(object):
         :return: recoupled tensor operator of type TensorOperator or TensorOperatorComposite
         """
         first_pair, second_pair = tensor_op.substructure
-        tensor_a, tensor_b = first_pair.substructure
         tensor_c, tensor_d = second_pair.substructure
-        #if not (tensor_a.space == tensor_b.space and tensor_c.space != tensor_d.space):
-        #    return None  # This is not the correct recoupling function for the given operator
         new_factor = tensor_op.factor * factor
         c = tensor_c.rank
         d = tensor_d.rank
@@ -315,8 +329,6 @@ class TensorAlgebra(object):
         """
         first_pair, tensor_c = tensor_op.substructure
         tensor_a, tensor_b = first_pair.substructure
-        #if tensor_a.space == tensor_b.space or tensor_b.space <= tensor_c.space:
-        #    return None  # This is not the correct recoupling function for the given operator
         new_factor = tensor_op.factor * factor
         a = tensor_a.rank
         b = tensor_b.rank
@@ -355,8 +367,6 @@ class TensorAlgebra(object):
 
         first_pair, tensor_c = tensor_op.substructure
         tensor_a, tensor_b = first_pair.substructure
-        #if tensor_a.space == tensor_b.space or tensor_b.space != tensor_c.space:
-        #    return None  # This is not the correct recoupling function for the given operator
         a = tensor_a.rank
         b = tensor_b.rank
         c = tensor_c.rank
@@ -379,32 +389,6 @@ class TensorAlgebra(object):
             print('[DEBUG] recouple ABxC -> AxBC')
             print(tensor_op, '->', out_tensor)
         return out_tensor
-
-    @classmethod
-    def _recouple_AxBC_ABxC(cls, tensor_op: TensorOperator, factor=1, debug=DEBUG_MODE) -> Optional[TensorOperator]:
-        """
-        Tensor recoupling of the form
-        A_a  x (B_b x C_c)_bc -> (A_a x B_b)_ab x C_c
-        The assumption is, that these operators are already ordered according to their spaces within the brackets.
-        This recoupling scheme is applied when space B != space C and space A == space B.
-
-        :param tensor_op: the tensor operator that should be recoupled
-        :param factor: a factor that appears during the recoupling, default is 1
-        :return: recoupled tensor operator of type TensorOperator or TensorOperatorComposite
-        """
-        out_tensor = tensor_op.commute()
-        pair, tensor_a = out_tensor.substructure
-        commute_pair = pair.commute()
-        out_tensor = commute_pair.couple(tensor_a, tensor_op.rank, out_tensor.factor, order=False)
-        #if tensor_c.space == tensor_b.space:
-        #    return None  # This is not the correct recoupling function for the given operator
-        out_tensor = cls._recouple_ABxC_AxBC(out_tensor)
-
-        if debug:
-            print('[DEBUG] recouple AxBC -> ABxC')
-            print(tensor_op, '->', out_tensor)
-        return out_tensor
-
 
 
 if __name__ == "__main__":
