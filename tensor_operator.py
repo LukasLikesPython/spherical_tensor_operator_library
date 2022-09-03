@@ -32,6 +32,12 @@ class TensorOperatorInterface(ABC):
     def __rmul__(self, factor):
         return self.__mul__(factor)
 
+    def __truediv__(self, other):
+        return self * (1/other)
+
+    def __rtruediv__(self, other):
+        return self.__truediv__(other)
+
     @abstractmethod
     def to_latex(self):
         pass
@@ -321,9 +327,6 @@ class TensorOperator(TensorOperatorInterface):
         else:
             tensors_a, tensors_b = self.substructure
             return [tensors_a.get_space_structure(), tensors_b.get_space_structure()]
-
-
-
 
 
 if __name__ == "__main__":

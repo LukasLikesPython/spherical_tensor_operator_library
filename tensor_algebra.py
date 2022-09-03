@@ -7,7 +7,7 @@ from math import prod
 from tensor_operator import TensorOperator, TensorOperatorComposite
 
 
-DEBUG_MODE = False
+DEBUG_MODE = True
 
 
 class TensorAlgebra(object):
@@ -337,7 +337,7 @@ class TensorAlgebra(object):
         rank = tensor_op.rank
         out_tensor = None
         for ac in range(abs(a - c), a + c + 1):
-            operator_factor = cls.jsc(ab, ac) * wigner_6j(a, b, ab, rank, c, ac) * new_factor * pow(-1, ac + b)
+            operator_factor = cls.jsc(ab, ac) * wigner_6j(a, b, ab, rank, c, ac) * new_factor * pow(-1, ac + c)
             if operator_factor != 0:
                 new_pair = tensor_a.couple(tensor_c, ac, 1)
                 if not new_pair:
