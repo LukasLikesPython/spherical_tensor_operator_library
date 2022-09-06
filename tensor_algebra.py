@@ -7,7 +7,7 @@ from math import prod
 from tensor_operator import TensorOperator, TensorOperatorComposite
 
 
-DEBUG_MODE = True
+DEBUG_MODE = False
 
 
 class TensorAlgebra(object):
