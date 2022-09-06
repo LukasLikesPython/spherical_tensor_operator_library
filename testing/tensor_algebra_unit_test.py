@@ -11,18 +11,12 @@ cm_space = TensorSpace('cm', 2)
 
 
 class TestTensorAlgebra(unittest.TestCase):
+
     q = TensorOperator(rank=1, symbol='q', space=rel_space)
     k = TensorOperator(rank=1, symbol='k', space=rel_space)
     P = TensorOperator(rank=1, symbol='P', space=cm_space)
     sig1 = TensorOperator(rank=1, symbol='sig1', space=spin_space)
     sig2 = TensorOperator(rank=1, symbol='sig2', space=spin_space)
-    qk0_block = q.couple(k, 0, 1, False)
-    qk1_block = q.couple(k, 1, 1, False)
-    qk2_block = q.couple(k, 2, 1, False)
-    kq0_block = k.couple(q, 0, 1, False)
-    kq1_block = k.couple(q, 1, 1, False)
-    kq2_block = k.couple(q, 2, 1, False)
-
     qsq = TensorFromVectors.scalar_product(q, q)
     ksq = TensorFromVectors.scalar_product(k, k)
     qxk = TensorFromVectors.vector_product(q, k)
