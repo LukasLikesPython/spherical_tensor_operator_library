@@ -1,13 +1,14 @@
 from __future__ import annotations
-from sympy.physics.wigner import wigner_6j, wigner_9j, clebsch_gordan
+from sympy.physics.wigner import wigner_6j, wigner_9j
 from sympy import KroneckerDelta
 from typing import Union
 from abc import ABC, abstractmethod
 
 from tensor_algebra import jsc
-from quantum_states import CoupledState, BasicState, State
+from quantum_states import State
 from tensor_algebra import TensorAlgebra
 from tensor_operator import TensorOperator, TensorOperatorComposite
+from symbolic_wigner import Symbolic6j
 
 
 class MatrixElementInterface(ABC):
@@ -41,6 +42,9 @@ class MatrixElementInterface(ABC):
             return " + ".join([f"{op.factor} * {self._state_representation(op.to_expression_no_factor())}" for op in self.operator.children])
         else:
             return f"{self.operator.factor} * {self._state_representation(self.operator.to_expression_no_factor())}"
+
+    def __repr__(self):
+        return self.__str__()
 
     @abstractmethod
     def _state_representation(self, op):
@@ -88,8 +92,9 @@ class MatrixElement(MatrixElementInterface):
         ket_j_a = ket_a.angular_quantum_number
         ket_j_b = ket_b.angular_quantum_number
 
-        factor = pow(-1, bra_j + bra_j_b + ket_j_a + rank) / jsc(rank) \
-                 * wigner_6j(bra_j_a, bra_j_b, bra_j, ket_j_b, ket_j_a, rank) * KroneckerDelta(bra_j, ket_j)
+        factor = pow(-1, bra_j + bra_j_b + ket_j_a + rank) / jsc(rank) * KroneckerDelta(bra_j, ket_j) \
+                  * Symbolic6j(bra_j_a, bra_j_b, bra_j, ket_j_b, ket_j_a, rank)
+                 #* wigner_6j(bra_j_a, bra_j_b, bra_j, ket_j_b, ket_j_a, rank)
         reduced_matrix_element_a = ReducedMatrixElement(bra_a, ket_a, tensor_a)
         reduced_matrix_element_b = ReducedMatrixElement(bra_b, ket_b, tensor_b)
         return factor, reduced_matrix_element_a, reduced_matrix_element_b
@@ -143,6 +148,7 @@ if __name__ == "__main__":
     from sympy import Symbol
     from tensor_space import TensorSpace
     from tensor_transformation import TensorFromVectors
+    from quantum_states import BasicState
 
     # spaces
     rel_space = TensorSpace('rel', 0)
