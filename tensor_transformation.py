@@ -1,5 +1,5 @@
 from sympy import sqrt, I
-from tensor_operator import TensorOperator, TensorOperatorComposite
+from tensor_operator import TensorOperator
 
 
 class VectorOperator(object):

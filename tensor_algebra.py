@@ -1,13 +1,22 @@
 from __future__ import annotations
 from typing import Optional, Union
-from sympy.physics.wigner import clebsch_gordan, wigner_6j, wigner_9j
+from sympy.physics.wigner import wigner_6j, wigner_9j
 from sympy import sqrt
 from math import prod
 
 from tensor_operator import TensorOperator, TensorOperatorComposite
 
-
 DEBUG_MODE = False
+
+
+def jsc(*args):
+    """
+    Auxiliary function for a reappearing element during recoupling actions [j], where [j] = sqrt(2 * j + 1)
+
+    :param args: either a single integer or multiple integers
+    :return: the product of the input
+    """
+    return prod([sqrt(2 * arg + 1) for arg in args])
 
 
 class TensorAlgebra(object):
@@ -19,16 +28,6 @@ class TensorAlgebra(object):
     The example from above would require the function
     _recouple_ABxCD_ACxBD
     """
-
-    @staticmethod
-    def jsc(*args):
-        """
-        Auxiliary function for a reappearing element during recoupling actions [j], where [j] = sqrt(2 * j + 1)
-
-        :param args: either a single integer or multiple integers
-        :return: the product of the input
-        """
-        return prod([sqrt(2 * arg + 1) for arg in args])
 
     @staticmethod
     def _can_be_recoupled_ABxAB_AAxBB(tensor_op: TensorOperator) -> bool:
@@ -231,8 +230,8 @@ class TensorAlgebra(object):
                 out_tensor = cls.recouple(out_tensor, factor, verbose=False, outer_loop=False)
         return out_tensor
 
-    @classmethod
-    def _recouple_ABxCD_ACxBD(cls, tensor_op: TensorOperator, factor=1, debug=DEBUG_MODE) -> Optional[TensorOperator]:
+    @staticmethod
+    def _recouple_ABxCD_ACxBD(tensor_op: TensorOperator, factor=1, debug=DEBUG_MODE) -> Optional[TensorOperator]:
         """
         Tensor recoupling of the form
         (A_a x B_b)_ab x (C_c x D_d)_cd -> (A_a x C_c)_ac x (B_b x D_d)_bd
@@ -260,7 +259,7 @@ class TensorAlgebra(object):
             for bd in range(abs(b - d), b + d + 1):
                 if not (abs(ac - bd) <= rank <= ac + bd):
                     continue
-                operator_factor = new_factor * cls.jsc(ab, cd, ac, bd) * wigner_9j(a, b, ab, c, d, cd, ac, bd, rank)
+                operator_factor = new_factor * jsc(ab, cd, ac, bd) * wigner_9j(a, b, ab, c, d, cd, ac, bd, rank)
                 if operator_factor != 0:
                     new_first_pair = tensor_a.couple(tensor_c, ac, 1)
                     new_second_pair = tensor_b.couple(tensor_d, bd, 1)
@@ -276,8 +275,8 @@ class TensorAlgebra(object):
             print(tensor_op, '->', out_tensor)
         return out_tensor
 
-    @classmethod
-    def _recouple_ABxCD_ABCxD(cls, tensor_op: TensorOperator, factor=1, debug=DEBUG_MODE) -> Optional[TensorOperator]:
+    @staticmethod
+    def _recouple_ABxCD_ABCxD(tensor_op: TensorOperator, factor=1, debug=DEBUG_MODE) -> Optional[TensorOperator]:
         """
         Tensor recoupling of the form
         (A_a x B_b)_ab x (C_c x D_d)_cd -> ((A_a x B_b)_ab x C_c)_abc x D_d
@@ -298,7 +297,7 @@ class TensorAlgebra(object):
         rank = tensor_op.rank
         out_tensor = None
         for abc in range(abs(c - ab), c + ab + 1):
-            operator_factor = cls.jsc(cd, abc) * wigner_6j(c, ab, abc, rank, d, cd) * new_factor \
+            operator_factor = jsc(cd, abc) * wigner_6j(c, ab, abc, rank, d, cd) * new_factor \
                               * pow(-1, d + c + ab + rank)
             if operator_factor != 0:
                 triplet = first_pair.couple(tensor_c, abc, 1)
@@ -314,8 +313,8 @@ class TensorAlgebra(object):
             print(tensor_op, '->', out_tensor)
         return out_tensor
 
-    @classmethod
-    def _recouple_ABxC_ACxB(cls, tensor_op: TensorOperator, factor=1, debug=DEBUG_MODE) -> Optional[TensorOperator]:
+    @staticmethod
+    def _recouple_ABxC_ACxB(tensor_op: TensorOperator, factor=1, debug=DEBUG_MODE) -> Optional[TensorOperator]:
         """
         Tensor recoupling of the form
         (A_a x B_b)_ab x C_c -> (A_a x C_c)_ac x B_b
@@ -337,7 +336,7 @@ class TensorAlgebra(object):
         rank = tensor_op.rank
         out_tensor = None
         for ac in range(abs(a - c), a + c + 1):
-            operator_factor = cls.jsc(ab, ac) * wigner_6j(a, b, ab, rank, c, ac) * new_factor * pow(-1, ac + c)
+            operator_factor = jsc(ab, ac) * wigner_6j(a, b, ab, rank, c, ac) * new_factor * pow(-1, ac + c)
             if operator_factor != 0:
                 new_pair = tensor_a.couple(tensor_c, ac, 1)
                 if not new_pair:
@@ -352,8 +351,8 @@ class TensorAlgebra(object):
             print(tensor_op, '->', out_tensor)
         return out_tensor
 
-    @classmethod
-    def _recouple_ABxC_AxBC(cls, tensor_op: TensorOperator, factor=1, debug=DEBUG_MODE) -> Optional[TensorOperator]:
+    @staticmethod
+    def _recouple_ABxC_AxBC(tensor_op: TensorOperator, factor=1, debug=DEBUG_MODE) -> Optional[TensorOperator]:
         """
         Tensor recoupling of the form
         (A_a x B_b)_ab x C_c -> A_a x (B_b x C_c)_bc
@@ -375,7 +374,7 @@ class TensorAlgebra(object):
         out_tensor = None
         new_factor = tensor_op.factor * factor * pow(-1, b + c - ab - rank)
         for bc in range(abs(b - c), b + c + 1):
-            operator_factor = cls.jsc(ab, bc) * wigner_6j(b, a, ab, rank, c, bc) * new_factor
+            operator_factor = jsc(ab, bc) * wigner_6j(b, a, ab, rank, c, bc) * new_factor
             if operator_factor != 0:
                 new_pair = tensor_b.couple(tensor_c, bc, 1)
                 if not new_pair:

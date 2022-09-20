@@ -3,7 +3,7 @@ from typing import Union
 from copy import deepcopy
 
 from tensor_space import TensorSpace, default_space
-
+# TODO make multiplication of two tensor operators to a coupling to rank 0
 
 class TensorOperatorInterface(ABC):
     """
@@ -221,9 +221,9 @@ class TensorOperator(TensorOperatorInterface):
                    replace(', ', ' \\otimes ').replace("'", "") + "_" + "{" + str(self.rank) + "}"
 
     def to_expression(self):
-        return str(self.factor) + " * " + self._to_expression_no_factor()
+        return str(self.factor) + " * " + self.to_expression_no_factor()
 
-    def _to_expression_no_factor(self):
+    def to_expression_no_factor(self):
         return str(self.symbol).replace("[", "{").replace("]", "}").replace(', ', ' x ').replace("'", "") \
                + "_" + str(self.rank)
 
@@ -263,7 +263,7 @@ class TensorOperator(TensorOperatorInterface):
                 new_space = self.space
             else:
                 new_space = self.space + other.space
-            new_symbol = [self._to_expression_no_factor(), other._to_expression_no_factor()]
+            new_symbol = [self.to_expression_no_factor(), other.to_expression_no_factor()]
             # keep track of factors on outermost layer
             tensor_a = deepcopy(self)
             tensor_b = deepcopy(other)

@@ -4,17 +4,26 @@ from sympy import Symbol
 from sympy.physics.wigner import clebsch_gordan
 from typing import Optional
 
+#TODO add space to basic states and rearrange coupled states accordingly
+
 
 class State(ABC):
 
     def __init__(self, angular_quantum_number: Symbol, other_quantum_number: Symbol = None, factor=1,
-                 substructure: Optional[list] = None):
+                 substructure: Optional[list] = None, projection = None):
         self._angular_quantum_number = angular_quantum_number
         self._other_quantum_number = other_quantum_number
         self._factor = factor
         self._substructure = substructure
+        self._projection = projection
 
     def __str__(self):
+        if self.other_quantum_number:
+            return f"|{self.other_quantum_number}{self.representation()}>"
+        else:
+            return f"|{self.representation()}>"
+
+    def __repr__(self):
         if self.other_quantum_number:
             return f"|{self.other_quantum_number}{self.representation()}>"
         else:
@@ -23,6 +32,13 @@ class State(ABC):
     @property
     def angular_quantum_number(self):
         return self._angular_quantum_number
+
+    @property
+    def anuglar_quantum_projection(self):
+        if self._projection is None:
+            return Symbol(f"m_{self.angular_quantum_number}")
+        else:
+            return self._projection
 
     @property
     def other_quantum_number(self):
@@ -68,9 +84,6 @@ class CoupledState(State):
         return f"{self.angular_quantum_number}" \
                f"({self.substructure[0].representation()}{self.substructure[1].representation()})"
 
-    def decouple(self) -> [State, State]:
-        pass # TODO use cg to decouple the states
-
 
 class BasicState(State):
 
@@ -107,4 +120,5 @@ if __name__ == "__main__":
     print(j)
     j = s.couple(l, Symbol('j'))
     print(j)
+    print(j.substructure[0], j.substructure[1])
 
