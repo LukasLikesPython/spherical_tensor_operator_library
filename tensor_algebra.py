@@ -13,7 +13,7 @@ def jsc(*args):
     """
     Auxiliary function for a reappearing element during recoupling actions [j], where [j] = sqrt(2 * j + 1)
 
-    :param args: either a single integer or multiple integers
+    :param args: either a single integer/Symbol or multiple integers/Symbols
     :return: the product of the input
     """
     return prod([sqrt(2 * arg + 1) for arg in args])
@@ -21,7 +21,6 @@ def jsc(*args):
 
 class TensorAlgebra(object):
     """
-
     Naming convention for tensor operator recoupling:
     The recoupling operations work for instance as follows (A x B) x (C x D) -> (A x C) x (B x D). We define our naming
     convention according to the initial space and final result. The functions all start with _recouple_initial_final.

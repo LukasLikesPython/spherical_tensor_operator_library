@@ -1,19 +1,112 @@
 from __future__ import annotations
-from sympy.physics.wigner import wigner_6j, wigner_9j
 from sympy import KroneckerDelta
-from typing import Union
+from typing import Union, Optional
 from abc import ABC, abstractmethod
+import copy
 
 from tensor_algebra import jsc
-from quantum_states import State
+from quantum_states import StateInterface
 from tensor_algebra import TensorAlgebra
 from tensor_operator import TensorOperator, TensorOperatorComposite
 from symbolic_wigner import Symbolic6j, Symbolic9j, SymbolicWigner
 
 
+
 class MatrixElementInterface(ABC):
 
-    def __init__(self, bra_state: State, ket_state: State,
+    @abstractmethod
+    def decouple(self):
+        pass
+
+    @abstractmethod
+    def __str__(self):
+        pass
+
+    @abstractmethod
+    def evaluate(self, symbolic_replace_dict):
+        pass
+
+
+class ReducedMatrixElementComposite(MatrixElementInterface):
+
+    def __init__(self, reduced_me_a: Union[list, ReducedMatrixElement], reduced_me_b: Union[list, ReducedMatrixElement],
+                 factor):
+        if isinstance(reduced_me_a, list):
+            self._reduced_me_a = reduced_me_a
+            self._reduced_me_b = reduced_me_b
+            self._factor = factor
+        else:
+            self._reduced_me_a = [reduced_me_a]
+            self._reduced_me_b = [reduced_me_b]
+            self._factor = [factor]
+
+    @property
+    def reduced_matrix_element_a(self):
+        return self._reduced_me_a
+
+    @property
+    def reduced_matrix_element_b(self):
+        return self._reduced_me_b
+
+    @property
+    def factor(self):
+        return self._factor
+
+    @property
+    def children(self):
+        return zip(self.factor, self.reduced_matrix_element_a, self.reduced_matrix_element_b)
+
+    def __str__(self):
+        content = [f'{x[0]} * {x[1]}{x[2]}' for x in self.children]
+        return ' + '.join(content)
+
+    def _composite_decouple(self) -> Optional[ReducedMatrixElementComposite]:
+        pass
+
+    def decouple(self) -> None:
+        """
+        This class already contains matrix elements that have been decoupled at least once. In some situations,
+        it is possible to decouple the operators further. E.g., the structure
+        <j'(j_ab'(j_a'j_b')j_c')| {{A x B} x C} |j(j_ab(j_aj_b)j_c)>
+        decoupled once reads
+        <j_ab'(j_a'j_b')|| {A x B} ||j_ab(j_aj_b)> <j_c'|| C ||j_c>.
+        This can be decoupled again to
+        <j_a'|| A || j_a> <j_b')|| B ||j_b> <j_c'|| C ||j_c>.
+        :return: None
+        """
+        new_me_a = []
+        new_me_b = []
+        for _, me_a, me_b in self.children:
+            new_composite_a = me_a.decouple()
+            new_composite_b = me_b.decouple()
+
+            if new_composite_a:
+                new_me_a.append(new_composite_a)
+            else:
+                new_me_a.append(me_a)
+
+            if new_composite_b:
+                new_me_b.append(new_composite_b)
+            else:
+                new_me_b.append(me_b)
+
+        self._reduced_me_a = new_me_a
+        self._reduced_me_b = new_me_b
+
+
+    def append(self, other: ReducedMatrixElementComposite) -> None:
+        self._reduced_me_a.extend(other.reduced_matrix_element_a)
+        self._reduced_me_b.extend(other.reduced_matrix_element_b)
+        self._factor.extend(other.factor)
+
+    def evaluate(self, symbolic_replace_dict):
+        self.decouple()
+        pass
+
+
+class BasicMatrixElementLeafInterface(MatrixElementInterface):
+
+    def __init__(self, bra_state: StateInterface, ket_state: StateInterface,
                  operator: Union[TensorOperator, TensorOperatorComposite, None], factor=1, recouple=True):
         self._bra = bra_state
         self._ket = ket_state
@@ -44,53 +137,54 @@ class MatrixElementInterface(ABC):
 
     def __str__(self):
         if isinstance(self.operator, TensorOperatorComposite):
-            return " + ".join([f"{op.factor} * {self._state_representation(op.to_expression_no_factor())}" for op in
-                               self.operator.children])
+            return " + ".join([f"{op.factor} * {self._state_representation(op.to_expression_no_factor())}"
+                               if op.factor != 1 else f"{self._state_representation(op.to_expression_no_factor())}"
+                               for op in self.operator.children])
         else:
-            return f"{self.operator.factor} * {self._state_representation(self.operator.to_expression_no_factor())}"
+            factor = self.operator.factor
+            if factor != 1:
+                output = f"{factor} * {self._state_representation(self.operator.to_expression_no_factor())}"
+            else:
+                output = f"{self._state_representation(self.operator.to_expression_no_factor())}"
+            return output
 
     def __repr__(self):
         return self.__str__()
 
     @abstractmethod
-    def _state_representation(self, op):
+    def _state_representation(self, operator):
         pass
 
     @abstractmethod
     def _basic_decouple(self, operator):
         pass
 
-    def decouple(self):
+    def decouple(self) -> Optional[ReducedMatrixElementComposite]:
         if isinstance(self.operator, TensorOperatorComposite):
-            factors = []
-            matrix_elements_a = []
-            matrix_elements_b = []
+            red_me_composite = ReducedMatrixElementComposite([], [], [])
             for op in self.operator.children:
-                factor, me_a, me_b = self._basic_decouple(op)
-                factors.append(factor)
-                matrix_elements_a.append(me_a)
-                matrix_elements_b.append(me_b)
-            return factors, matrix_elements_a, matrix_elements_b
+                additional_red_me_composite = self._basic_decouple(op)
+                if additional_red_me_composite:
+                    red_me_composite.append(additional_red_me_composite)
+            return red_me_composite
         else:
             return self._basic_decouple(self.operator)
 
     def evaluate(self, symbol_replace_dict):
-        # decouple
-        factor, reduced_matrix_element_1, reduced_matrix_element_2 = self.decouple()
-        while reduced_matrix_element_1:
-            break
+        red_me_composite = self.decouple()
+        return red_me_composite.evaluate(symbol_replace_dict)
 
 
-class MatrixElement(MatrixElementInterface):
+class MatrixElement(BasicMatrixElementLeafInterface):
 
-    def _state_representation(self, op):
-        return f"<{str(self.bra)[1:-1]}{self.bra.anuglar_quantum_projection}|{op}{str(self.ket)[:-1]}" \
+    def _state_representation(self, operator):
+        return f"<{str(self.bra)[1:-1]}{self.bra.anuglar_quantum_projection}|{operator}{str(self.ket)[:-1]}" \
                + f"{self.ket.anuglar_quantum_projection}>"
 
-    def _basic_decouple(self, operator):
+    def _basic_decouple(self, operator) -> Optional[ReducedMatrixElementComposite]:
         if not self.bra.substructure or not self.ket.substructure:
             print('[INFO] There is nothing to decouple')
-            return None, None, None
+            return None
 
         tensor_a, tensor_b = operator.substructure
         rank = operator.rank
@@ -108,12 +202,12 @@ class MatrixElement(MatrixElementInterface):
                  * Symbolic6j(bra_j_a, bra_j_b, bra_j, ket_j_b, ket_j_a, rank)
         reduced_matrix_element_a = ReducedMatrixElement(bra_a, ket_a, tensor_a)
         reduced_matrix_element_b = ReducedMatrixElement(bra_b, ket_b, tensor_b)
-        return factor, reduced_matrix_element_a, reduced_matrix_element_b
+        return ReducedMatrixElementComposite(reduced_matrix_element_a, reduced_matrix_element_b, factor)
 
 
-class ReducedMatrixElement(MatrixElementInterface):
+class ReducedMatrixElement(BasicMatrixElementLeafInterface):
 
-    def __init__(self, bra_state: State, ket_state: State, operator: Union[TensorOperator, TensorOperatorComposite]):
+    def __init__(self, bra_state: StateInterface, ket_state: StateInterface, operator: Union[TensorOperator, TensorOperatorComposite]):
         super().__init__(bra_state, ket_state, operator, factor=1, recouple=False)
         self._value = None
 
@@ -128,10 +222,10 @@ class ReducedMatrixElement(MatrixElementInterface):
     def value(self, other):
         self._value = other
 
-    def _state_representation(self, op):
-        return f"<{str(self.bra)[1:-1]}||{op}|{self.ket}"
+    def _state_representation(self, operator):
+        return f"<{str(self.bra)[1:-1]}||{operator}|{self.ket}"
 
-    def _basic_decouple(self, operator):
+    def _basic_decouple(self, operator) -> Optional[ReducedMatrixElementComposite]:
         if operator.substructure:
             tensor_a, tensor_b = operator.substructure
             if tensor_a.space != tensor_b.space:
@@ -150,27 +244,10 @@ class ReducedMatrixElement(MatrixElementInterface):
                              * Symbolic9j(a, b, rank, bra_j_a, bra_j_b, bra_j, ket_j_a, ket_j_b, ket_j)
                 reduced_matrix_element_a = ReducedMatrixElement(bra_a, ket_a, tensor_a)
                 reduced_matrix_element_b = ReducedMatrixElement(bra_b, ket_b, tensor_b)
-                return new_factor * self.factor, reduced_matrix_element_a, reduced_matrix_element_b
+                return ReducedMatrixElementComposite(reduced_matrix_element_a, reduced_matrix_element_b,
+                                                     new_factor * self.factor)
         print(f'[INFO] Further decoupling not possible for reduced matrix element {self}')
-        return None, None, None
-
-
-class ReducedMatrixElementComposite(MatrixElementInterface):
-
-    def __init__(self, bra_state: State, ket_state: State, operator_a, operator_b, factor):
-        super().__init__(bra_state, ket_state, None, factor=factor, recouple=False)
-        self._operator_a = operator_a
-        self._operator_b = operator_b
-
-    @property
-    def operator_a(self):
-        return self._operator_a
-
-    @property
-    def operator_b(self):
-        return self._operator_b
-
-
+        return None
 
 
 if __name__ == "__main__":
@@ -211,8 +288,25 @@ if __name__ == "__main__":
     print(me)
 
     # decouple
-    fac, red_me_a, red_me_b = me.decouple()
-    print(fac)
-    print(red_me_a)
-    print(red_me_b)
+    composite = me.decouple()
+    print(composite)
+
+    # double decoupling test
+    L = BasicState(Symbol('L'), Symbol('P'))
+    Lp = BasicState(Symbol("L'"), Symbol("P'"))
+    ket = l.couple(s, Symbol('j')).couple(L, Symbol('J'))
+    print(ket, ket.substructure)
+    bra = lp.couple(sp, Symbol("j'")).couple(Lp, Symbol("J'"))
+    print(bra, ket.substructure)
+    P = TensorOperator(rank=1, symbol=Symbol('P'), space=cm_space)
+    Psq = TensorFromVectors.scalar_product(P, P)
+    tensor_op = tensor_op.couple(Psq, 0, 1)
+
+    me = MatrixElement(bra, ket, tensor_op)
+    print(me)
+
+    composite = me.decouple()
+    print(composite.decouple())
+
+
 

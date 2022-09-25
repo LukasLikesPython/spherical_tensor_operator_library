@@ -2,15 +2,15 @@ from __future__ import annotations
 from abc import ABC, abstractmethod
 from sympy import Symbol
 from sympy.physics.wigner import clebsch_gordan
-from typing import Optional
+from typing import Optional, List
 
 #TODO add space to basic states and rearrange coupled states accordingly
 
 
-class State(ABC):
+class StateInterface(ABC):
 
-    def __init__(self, angular_quantum_number: Symbol, other_quantum_number: Symbol = None, factor=1,
-                 substructure: Optional[list] = None, projection = None):
+    def __init__(self, angular_quantum_number: Symbol, other_quantum_number: Optional[Symbol] = None, factor=1,
+                 substructure: Optional[List[StateInterface]] = None, projection: Optional[Symbol] = None):
         self._angular_quantum_number = angular_quantum_number
         self._other_quantum_number = other_quantum_number
         self._factor = factor
@@ -24,10 +24,7 @@ class State(ABC):
             return f"|{self.representation()}>"
 
     def __repr__(self):
-        if self.other_quantum_number:
-            return f"|{self.other_quantum_number}{self.representation()}>"
-        else:
-            return f"|{self.representation()}>"
+        return self.__str__()
 
     @property
     def angular_quantum_number(self):
@@ -53,56 +50,41 @@ class State(ABC):
         return self._factor
 
     @abstractmethod
-    def couple(self, other: State, new_quantum_number: Symbol) -> State:
-        pass
-
-    @abstractmethod
     def representation(self) -> str:
         pass
 
-
-class CoupledState(State):
-
-    def __init__(self, angular_quantum_number: Symbol, other_quantum_number: Symbol = None, factor=1,
-                 substructure=None):
-        if not substructure:
-            raise AttributeError('[ERROR] A coupled state must have a substructure.')
-        super().__init__(angular_quantum_number, other_quantum_number, factor, substructure)
-
-    def couple(self, other, new_quantum_number: Symbol) -> CoupledState:
+    def couple(self, other: StateInterface, new_quantum_number: Symbol) -> CoupledState:
         new_factor = self.factor * other.factor
         new_other_quantum_number = ''
         if self.other_quantum_number:
             new_other_quantum_number = self.other_quantum_number
         if other.other_quantum_number:
-            new_other_quantum_number += other.other_quantum_number
+            new_other_quantum_number = Symbol(f"{new_other_quantum_number}{other.other_quantum_number}")
         if not new_other_quantum_number:
             new_other_quantum_number = None
         return CoupledState(new_quantum_number, new_other_quantum_number, new_factor, [self, other])
+
+
+class CoupledState(StateInterface):
+
+    def __init__(self, angular_quantum_number: Symbol, other_quantum_number: Optional[Symbol] = None, factor=1,
+                 substructure: List[StateInterface] = None):
+        if not substructure:
+            raise AttributeError('[ERROR] A coupled state must have a substructure.')
+        super().__init__(angular_quantum_number, other_quantum_number, factor, substructure)
 
     def representation(self) -> str:
         return f"{self.angular_quantum_number}" \
                f"({self.substructure[0].representation()}{self.substructure[1].representation()})"
 
 
-class BasicState(State):
+class BasicState(StateInterface):
 
-    def __init__(self, angular_quantum_number: Symbol, other_quantum_number: Symbol = None, factor=1,
+    def __init__(self, angular_quantum_number: Symbol, other_quantum_number: Optional[Symbol] = None, factor=1,
                  substructure=None):
         if substructure:
             raise AttributeError('[ERROR] A basic state cannot have a substructure.')
         super().__init__(angular_quantum_number, other_quantum_number, factor)
-
-    def couple(self, other: State, new_quantum_number: Symbol) -> CoupledState:
-        new_factor = self.factor * other.factor
-        new_other_quantum_number = ''
-        if self.other_quantum_number:
-            new_other_quantum_number = self.other_quantum_number
-        if other.other_quantum_number:
-            new_other_quantum_number += other.other_quantum_number
-        if not new_other_quantum_number:
-            new_other_quantum_number = None
-        return CoupledState(new_quantum_number, new_other_quantum_number, new_factor, [self, other])
 
     def representation(self) -> str:
         return f"{self.angular_quantum_number}"

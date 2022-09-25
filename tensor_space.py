@@ -178,7 +178,6 @@ class TensorSpace(Iterable):
         if self.get_depth() == 0:
             return False
         for space in self:
-            print(space)
             if space == other:
                 return True
         return False
