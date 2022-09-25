@@ -1,6 +1,6 @@
 from __future__ import annotations
 from sympy import KroneckerDelta
-from typing import Union, Optional
+from typing import Union, Optional, List
 from abc import ABC, abstractmethod
 import copy
 
@@ -29,7 +29,8 @@ class MatrixElementInterface(ABC):
 
 class ReducedMatrixElementComposite(MatrixElementInterface):
 
-    def __init__(self, reduced_me_a: Union[list, ReducedMatrixElement], reduced_me_b: Union[list, ReducedMatrixElement],
+    def __init__(self, reduced_me_a: Union[List[ReducedMatrixElement], ReducedMatrixElement],
+                 reduced_me_b: Union[List[ReducedMatrixElement], ReducedMatrixElement],
                  factor):
         if isinstance(reduced_me_a, list):
             self._reduced_me_a = reduced_me_a
@@ -60,10 +61,34 @@ class ReducedMatrixElementComposite(MatrixElementInterface):
         content = [f'{x[0]} * {x[1]}{x[2]}' for x in self.children]
         return ' + '.join(content)
 
-    def _composite_decouple(self) -> Optional[ReducedMatrixElementComposite]:
-        pass
+    def __eq__(self, other: ReducedMatrixElementComposite) -> bool:
+        if self.children == other.children:
+            return True
+        else:
+            return False
 
-    def decouple(self) -> None:
+    def __neg__(self, other: ReducedMatrixElementComposite) -> bool:
+        return not self.__eq__(other)
+
+    def _full_composite_decouple(self) -> ReducedMatrixElementComposite:
+        """
+        Fully decouples a ReducedMatrixElementComposite if possible. The decoupling is done inplace. The object is
+        returned afterwards. The decoupling happens recursively, thus, it is capable to handle arbitrary structures.
+        :return: ReducedMatrixElementComposite
+        """
+        changed = True
+        while changed:
+            changed = False
+            for _, me_a, me_b in self.children:
+                me_a_copy = copy.deepcopy(me_a)
+                me_b_copy = copy.deepcopy(me_b)
+                me_a.decouple()
+                me_b.decouple()
+                if me_a != me_a_copy or me_b != me_b_copy:
+                    changed = True
+        return self
+
+    def decouple(self) -> ReducedMatrixElementComposite:
         """
         This class already contains matrix elements that have been decoupled at least once. In some situations,
         it is possible to decouple the operators further. E.g., the structure
@@ -72,8 +97,10 @@ class ReducedMatrixElementComposite(MatrixElementInterface):
         <j_ab'(j_a'j_b')|| {A x B} ||j_ab(j_aj_b)> <j_c'|| C ||j_c>.
         This can be decoupled again to
         <j_a'|| A || j_a> <j_b')|| B ||j_b> <j_c'|| C ||j_c>.
-        :return: None
+        :return: ReducedMatrixElementComposite
         """
+
+
         new_me_a = []
         new_me_b = []
         for _, me_a, me_b in self.children:
@@ -81,17 +108,18 @@ class ReducedMatrixElementComposite(MatrixElementInterface):
             new_composite_b = me_b.decouple()
 
             if new_composite_a:
-                new_me_a.append(new_composite_a)
+                new_me_a.append(new_composite_a._full_composite_decouple())
             else:
                 new_me_a.append(me_a)
 
             if new_composite_b:
-                new_me_b.append(new_composite_b)
+                new_me_b.append(new_composite_b._full_composite_decouple())
             else:
                 new_me_b.append(me_b)
 
         self._reduced_me_a = new_me_a
         self._reduced_me_b = new_me_b
+        return self
 
 
     def append(self, other: ReducedMatrixElementComposite) -> None:
@@ -210,6 +238,15 @@ class ReducedMatrixElement(BasicMatrixElementLeafInterface):
     def __init__(self, bra_state: StateInterface, ket_state: StateInterface, operator: Union[TensorOperator, TensorOperatorComposite]):
         super().__init__(bra_state, ket_state, operator, factor=1, recouple=False)
         self._value = None
+
+    def __eq__(self, other: ReducedMatrixElement) -> bool:
+        if self.bra == other.bra and self.ket == other.ket and self.operator == other.operator:
+            return True
+        else:
+            return False
+
+    def __neg__(self, other: ReducedMatrixElement) -> bool:
+        return not self.__eq__(other)
 
     @property
     def value(self):

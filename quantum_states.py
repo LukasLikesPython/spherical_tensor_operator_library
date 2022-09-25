@@ -4,7 +4,8 @@ from sympy import Symbol
 from sympy.physics.wigner import clebsch_gordan
 from typing import Optional, List
 
-#TODO add space to basic states and rearrange coupled states accordingly
+
+# TODO add space to basic states and rearrange coupled states accordingly
 
 
 class StateInterface(ABC):
@@ -25,6 +26,13 @@ class StateInterface(ABC):
 
     def __repr__(self):
         return self.__str__()
+
+    def __eq__(self, other: StateInterface) -> bool:
+        if self.angular_quantum_number == other.angular_quantum_number \
+                and self.other_quantum_number == other.other_quantum_number \
+                and self.factor == other.factor \
+                and self.substructure == other.substructure:
+            return True
 
     @property
     def angular_quantum_number(self):
@@ -91,7 +99,6 @@ class BasicState(StateInterface):
 
 
 if __name__ == "__main__":
-
     sig1 = BasicState(Symbol('\u03C3\u2081'))
     sig2 = BasicState(Symbol('\u03C3\u2082'))
     print(sig1, sig2)
@@ -103,4 +110,3 @@ if __name__ == "__main__":
     j = s.couple(l, Symbol('j'))
     print(j)
     print(j.substructure[0], j.substructure[1])
-
