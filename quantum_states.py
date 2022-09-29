@@ -61,6 +61,10 @@ class StateInterface(ABC):
     def representation(self) -> str:
         pass
 
+    @abstractmethod
+    def evaluate(self, symbolic_replace_dict):
+        pass
+
     def couple(self, other: StateInterface, new_quantum_number: Symbol) -> CoupledState:
         new_factor = self.factor * other.factor
         new_other_quantum_number = ''
@@ -85,6 +89,11 @@ class CoupledState(StateInterface):
         return f"{self.angular_quantum_number}" \
                f"({self.substructure[0].representation()}{self.substructure[1].representation()})"
 
+    def evaluate(self, symbolic_replace_dict):
+        return f"{self.angular_quantum_number.subs(symbolic_replace_dict)}" \
+               f"({self.substructure[0].evaluate(symbolic_replace_dict)}" \
+               f"{self.substructure[1].evaluate(symbolic_replace_dict)})"
+
 
 class BasicState(StateInterface):
 
@@ -96,6 +105,13 @@ class BasicState(StateInterface):
 
     def representation(self) -> str:
         return f"{self.angular_quantum_number}"
+
+    def evaluate(self, symbolic_replace_dict):
+        if self.other_quantum_number:
+            other = self.other_quantum_number.subs(symbolic_replace_dict)
+        else:
+            other = ""
+        return f"{other}{self.angular_quantum_number.subs(symbolic_replace_dict)}"
 
 
 if __name__ == "__main__":

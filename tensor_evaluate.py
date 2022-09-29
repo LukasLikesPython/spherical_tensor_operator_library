@@ -11,7 +11,6 @@ from tensor_operator import TensorOperator, TensorOperatorComposite
 from symbolic_wigner import Symbolic6j, Symbolic9j, SymbolicWigner
 
 
-
 class MatrixElementInterface(ABC):
 
     @abstractmethod
@@ -96,11 +95,9 @@ class ReducedMatrixElementComposite(MatrixElementInterface):
         decoupled once reads
         <j_ab'(j_a'j_b')|| {A x B} ||j_ab(j_aj_b)> <j_c'|| C ||j_c>.
         This can be decoupled again to
-        <j_a'|| A || j_a> <j_b')|| B ||j_b> <j_c'|| C ||j_c>.
+        <j_a'|| A ||j_a> <j_b')|| B ||j_b> <j_c'|| C ||j_c>.
         :return: ReducedMatrixElementComposite
         """
-
-
         new_me_a = []
         new_me_b = []
         for _, me_a, me_b in self.children:
@@ -121,7 +118,6 @@ class ReducedMatrixElementComposite(MatrixElementInterface):
         self._reduced_me_b = new_me_b
         return self
 
-
     def append(self, other: ReducedMatrixElementComposite) -> None:
         self._reduced_me_a.extend(other.reduced_matrix_element_a)
         self._reduced_me_b.extend(other.reduced_matrix_element_b)
@@ -129,7 +125,21 @@ class ReducedMatrixElementComposite(MatrixElementInterface):
 
     def evaluate(self, symbolic_replace_dict):
         self.decouple()
-        pass
+        ret_val = None
+        for factor, me_a, me_b in self.children:
+            if isinstance(factor, Symbol):
+                term = factor.subs(symbolic_replace_dict)
+            elif isinstance(factor, SymbolicWigner):
+                term = factor.evaluate(symbolic_replace_dict)
+            else:
+                term = factor
+            term *= me_a.evaluate(symbolic_replace_dict)
+            term *= me_b.evaluate(symbolic_replace_dict)
+            if ret_val:
+                ret_val += term
+            else:
+                ret_val = term
+        return ret_val
 
 
 class BasicMatrixElementLeafInterface(MatrixElementInterface):
@@ -199,8 +209,21 @@ class BasicMatrixElementLeafInterface(MatrixElementInterface):
             return self._basic_decouple(self.operator)
 
     def evaluate(self, symbol_replace_dict):
-        red_me_composite = self.decouple()
-        return red_me_composite.evaluate(symbol_replace_dict)
+        if isinstance(self.factor, Symbol):
+            ret_val = self.factor.subs(symbol_replace_dict)
+        else:
+            ret_val = self.factor
+        if isinstance(self, ReducedMatrixElement):
+            separator = "||"
+        else:
+            separator = "|"
+        if self.operator.factor != 1:
+            ret_val *= self.operator.factor
+        me = Symbol(f"<{self.bra.evaluate(symbol_replace_dict)}{separator}{self.operator.to_expression_no_factor()}"
+                    f"{separator}{self.ket.evaluate(symbol_replace_dict)}>")
+        return ret_val * me
+        #red_me_composite = self.decouple()
+        #return red_me_composite.evaluate(symbol_replace_dict)
 
 
 class MatrixElement(BasicMatrixElementLeafInterface):
@@ -344,6 +367,13 @@ if __name__ == "__main__":
 
     composite = me.decouple()
     print(composite.decouple())
+
+
+    # evaluate
+    subsdict = {Symbol('J'): 0, Symbol("J'"): 0, Symbol('L'): 0, Symbol("L'"): 0, Symbol('l'): 1,
+                Symbol("l'"): 1, Symbol('s'): 1, Symbol("s'"): 1, Symbol('j'): 0, Symbol("j'"): 0}
+
+    print(composite.evaluate(subsdict))
 
 
 

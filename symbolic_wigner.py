@@ -1,6 +1,14 @@
 from __future__ import annotations
 from abc import ABC, abstractmethod
 from sympy.physics.wigner import wigner_6j, wigner_9j
+from sympy import Symbol
+
+
+def factor_eval(factor, symbol_replace_dict):
+    try:
+        return factor.subs(symbol_replace_dict)
+    except AttributeError:
+        return factor
 
 
 class SymbolicWigner(ABC):
@@ -56,7 +64,7 @@ class SymbolicWignerComposite(SymbolicWigner):
         sub_symbol_value = 1
         for child in self.children:
             sub_symbol_value *= child.evaluate(symbol_replace_dict)
-        factor = self.factor.subs(symbol_replace_dict) if isinstance(self.factor, Symbol) else self.factor
+        factor = factor_eval(self.factor, symbol_replace_dict)
         return factor * sub_symbol_value
 
     def add_children(self, other):
@@ -93,7 +101,7 @@ class Symbolic6j(SymbolicWigner):
     def evaluate(self, symbol_replace_dict):
         j1, j2, j3, j4, j5, j6 = [x.subs(symbol_replace_dict) if isinstance(x, Symbol) else x for x in
                                   (self.j1, self.j2, self.j3, self.j4, self.j5, self.j6, )]
-        factor = self.factor.subs(symbol_replace_dict) if isinstance(self.factor, Symbol) else self.factor
+        factor = factor_eval(self.factor, symbol_replace_dict)
         key = (j1, j2, j3, j4, j5, j6)
         if key in self.six_j_cache:
             six_j_value = self.six_j_cache[key]
@@ -135,7 +143,7 @@ class Symbolic9j(SymbolicWigner):
         j1, j2, j3, j4, j5, j6, j7, j8, j9 = [x.subs(symbol_replace_dict) if isinstance(x, Symbol) else x for x in
                                               (self.j1, self.j2, self.j3, self.j4, self.j5, self.j6, self.j7, self.j8,
                                                self.j9)]
-        factor = self.factor.subs(symbol_replace_dict) if isinstance(self.factor, Symbol) else self.factor
+        factor = factor_eval(self.factor, symbol_replace_dict)
         key = (j1, j2, j3, j4, j5, j6, j7, j8, j9)
         if key in self.nine_j_cache:
             nine_j_value = self.nine_j_cache[key]
