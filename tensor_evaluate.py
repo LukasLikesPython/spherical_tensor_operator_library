@@ -306,7 +306,7 @@ class ReducedMatrixElement(BasicMatrixElementLeafInterface):
                 reduced_matrix_element_b = ReducedMatrixElement(bra_b, ket_b, tensor_b)
                 return ReducedMatrixElementComposite(reduced_matrix_element_a, reduced_matrix_element_b,
                                                      new_factor * self.factor)
-        print(f'[INFO] Further decoupling not possible for reduced matrix element {self}')
+        #print(f'[INFO] Further decoupling not possible for reduced matrix element {self}')
         return None
 
 
