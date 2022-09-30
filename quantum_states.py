@@ -1,22 +1,20 @@
 from __future__ import annotations
 from abc import ABC, abstractmethod
 from sympy import Symbol
-from sympy.physics.wigner import clebsch_gordan
+from tensor_space import TensorSpace
 from typing import Optional, List
-
-
-# TODO add space to basic states and rearrange coupled states accordingly
 
 
 class StateInterface(ABC):
 
-    def __init__(self, angular_quantum_number: Symbol, other_quantum_number: Optional[Symbol] = None, factor=1,
+    def __init__(self, angular_quantum_number: Symbol, space: TensorSpace, other_quantum_number: Optional[Symbol] = None, factor=1,
                  substructure: Optional[List[StateInterface]] = None, projection: Optional[Symbol] = None):
         self._angular_quantum_number = angular_quantum_number
         self._other_quantum_number = other_quantum_number
         self._factor = factor
         self._substructure = substructure
         self._projection = projection
+        self._space = space
 
     def __str__(self):
         if self.other_quantum_number:
@@ -57,6 +55,10 @@ class StateInterface(ABC):
     def factor(self):
         return self._factor
 
+    @property
+    def space(self):
+        return self._space
+
     @abstractmethod
     def representation(self) -> str:
         pass
@@ -66,24 +68,31 @@ class StateInterface(ABC):
         pass
 
     def couple(self, other: StateInterface, new_quantum_number: Symbol) -> CoupledState:
-        new_factor = self.factor * other.factor
+        if self.space > other.space:
+            first = other
+            second = self
+        else:
+            first = self
+            second = other
+        new_factor = first.factor * second.factor
+        new_space = first.space + second.space
         new_other_quantum_number = ''
-        if self.other_quantum_number:
-            new_other_quantum_number = self.other_quantum_number
+        if first.other_quantum_number:
+            new_other_quantum_number = first.other_quantum_number
         if other.other_quantum_number:
-            new_other_quantum_number = Symbol(f"{new_other_quantum_number}{other.other_quantum_number}")
+            new_other_quantum_number = Symbol(f"{new_other_quantum_number}{second.other_quantum_number}")
         if not new_other_quantum_number:
             new_other_quantum_number = None
-        return CoupledState(new_quantum_number, new_other_quantum_number, new_factor, [self, other])
+        return CoupledState(new_quantum_number, new_space, new_other_quantum_number, new_factor, [first, second])
 
 
 class CoupledState(StateInterface):
 
-    def __init__(self, angular_quantum_number: Symbol, other_quantum_number: Optional[Symbol] = None, factor=1,
-                 substructure: List[StateInterface] = None):
+    def __init__(self, angular_quantum_number: Symbol, space: TensorSpace,
+                 other_quantum_number: Optional[Symbol] = None, factor=1, substructure: List[StateInterface] = None):
         if not substructure:
             raise AttributeError('[ERROR] A coupled state must have a substructure.')
-        super().__init__(angular_quantum_number, other_quantum_number, factor, substructure)
+        super().__init__(angular_quantum_number, space, other_quantum_number, factor, substructure)
 
     def representation(self) -> str:
         return f"{self.angular_quantum_number}" \
@@ -97,11 +106,11 @@ class CoupledState(StateInterface):
 
 class BasicState(StateInterface):
 
-    def __init__(self, angular_quantum_number: Symbol, other_quantum_number: Optional[Symbol] = None, factor=1,
-                 substructure=None):
+    def __init__(self, angular_quantum_number: Symbol, space: TensorSpace,
+                 other_quantum_number: Optional[Symbol] = None, factor=1, substructure=None):
         if substructure:
             raise AttributeError('[ERROR] A basic state cannot have a substructure.')
-        super().__init__(angular_quantum_number, other_quantum_number, factor)
+        super().__init__(angular_quantum_number, space, other_quantum_number, factor)
 
     def representation(self) -> str:
         return f"{self.angular_quantum_number}"
@@ -115,14 +124,19 @@ class BasicState(StateInterface):
 
 
 if __name__ == "__main__":
-    sig1 = BasicState(Symbol('\u03C3\u2081'))
-    sig2 = BasicState(Symbol('\u03C3\u2082'))
+    rel_space = TensorSpace('rel', 0)
+    spin_space = TensorSpace('spin', 1)
+    cm_space = TensorSpace('cm', 2)
+
+    sig1 = BasicState(Symbol('\u03C3\u2081'), spin_space)
+    sig2 = BasicState(Symbol('\u03C3\u2082'), spin_space)
+
     print(sig1, sig2)
     s = sig1.couple(sig2, Symbol('s'))
-    print(s)
-    l = BasicState(Symbol('l'))
+    print(s, s.space)
+    l = BasicState(Symbol('l'), rel_space)
     j = l.couple(s, Symbol('j'))
-    print(j)
+    print(j, j.space)
     j = s.couple(l, Symbol('j'))
-    print(j)
+    print(j, j.space)
     print(j.substructure[0], j.substructure[1])

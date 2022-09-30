@@ -1,5 +1,6 @@
 from __future__ import annotations
 from collections.abc import Iterable, Iterator
+from typing import Optional, List
 
 
 class SpaceIterator(Iterator):
@@ -70,11 +71,11 @@ class TensorSpace(Iterable):
 
     space_dict = {}
 
-    def __init__(self, name: str, order: int, substructure=None, pure_space: bool = True):
+    def __init__(self, name: str, order: int, substructure: Optional[List[TensorSpace]] = None):
         self._name = name
         self._order = order
         self._substructure = substructure
-        self._pure_space = pure_space
+        self._pure_space = not substructure
         if name not in self.space_dict.keys():
             self.space_dict[name] = self
         else:
@@ -108,13 +109,16 @@ class TensorSpace(Iterable):
     def __str__(self):
         return f"{self.name}-space: order = {self.order}"
 
+    def __repr__(self):
+        return self.__str__()
+
     def __add__(self, other: TensorSpace):
         if self == other:
             return self
         else:
             new_name = '{' + self.name + ' x ' + other.name + '}'
             new_order = min(self.order, other.order)
-            return self.__class__(new_name, new_order, substructure=[self, other], pure_space=False)
+            return self.__class__(new_name, new_order, substructure=[self, other])
 
     def __eq__(self, other: TensorSpace):
         if self.name == other.name:
@@ -182,6 +186,16 @@ class TensorSpace(Iterable):
                 return True
         return False
 
+    def get_flat_basic_states(self):
+        flat_basic_states = []
+        if self.pure_space:
+            flat_basic_states.append(self)
+        else:
+            subspace_1, subspace_2 = self.substructure
+            flat_basic_states.extend(subspace_1.get_flat_basic_states())
+            flat_basic_states.extend(subspace_2.get_flat_basic_states())
+        return flat_basic_states
+
 
 default_space = TensorSpace('DEFAULT', 99)
 
@@ -204,3 +218,5 @@ if __name__ == "__main__":
     print(sso_space.contains(cm_space))
     print(sso_space.contains(spin_space))
     print(sso_space.contains(relative_space))
+
+    print(sso_space.get_flat_basic_states())

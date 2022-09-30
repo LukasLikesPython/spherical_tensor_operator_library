@@ -146,6 +146,7 @@ class BasicMatrixElementLeafInterface(MatrixElementInterface):
                  operator: Union[TensorOperator, TensorOperatorComposite, None], factor=1, recouple=True):
         self._bra = bra_state
         self._ket = ket_state
+        # TODO add unit operators, but first add space to states
         if recouple:
             self._operator = TensorAlgebra.recouple(operator)  # Simplifies the operator structure
         else:
@@ -154,6 +155,7 @@ class BasicMatrixElementLeafInterface(MatrixElementInterface):
             self._factor = factor * operator.factor
         else:
             self._factor = factor
+
 
     @property
     def bra(self):
@@ -320,12 +322,12 @@ if __name__ == "__main__":
     cm_space = TensorSpace('cm', 2)
 
     # states
-    s = BasicState(Symbol('s'))
-    l = BasicState(Symbol('l'), Symbol('p'))
+    s = BasicState(Symbol('s'), spin_space)
+    l = BasicState(Symbol('l'), rel_space, Symbol('p'))
     ket = l.couple(s, Symbol('j'))
     print(ket, ket.substructure)
-    sp = BasicState(Symbol("s'"))
-    lp = BasicState(Symbol("l'"), Symbol("p'"))
+    sp = BasicState(Symbol("s'"), spin_space)
+    lp = BasicState(Symbol("l'"), rel_space, Symbol("p'"))
     bra = lp.couple(sp, Symbol("j'"))
     print(bra, bra.substructure)
 
@@ -350,8 +352,8 @@ if __name__ == "__main__":
     print(composite)
 
     # double decoupling test
-    L = BasicState(Symbol('L'), Symbol('P'))
-    Lp = BasicState(Symbol("L'"), Symbol("P'"))
+    L = BasicState(Symbol('L'), cm_space, Symbol('P'))
+    Lp = BasicState(Symbol("L'"), cm_space, Symbol("P'"))
     ket = l.couple(s, Symbol('j')).couple(L, Symbol('J'))
     print(ket, ket.substructure)
     bra = lp.couple(sp, Symbol("j'")).couple(Lp, Symbol("J'"))

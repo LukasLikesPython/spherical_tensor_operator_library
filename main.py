@@ -12,8 +12,6 @@
 # Unit tests superhelpful when refactoring
 # Git super helpful to see latest changes.
 
-TODOS
-
 
 # TODO add unity operators according to the bra and ket space states in the generator for unrepresented spaces
 #
