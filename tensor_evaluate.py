@@ -8,7 +8,7 @@ from tensor_algebra import jsc
 from quantum_states import StateInterface
 from tensor_algebra import TensorAlgebra
 from tensor_operator import TensorOperator, TensorOperatorComposite
-from symbolic_wigner import Symbolic6j, Symbolic9j, SymbolicWigner
+from symbolic_wigner import Symbolic6j, Symbolic9j, SymbolicWigner, factor_eval
 
 
 class MatrixElementInterface(ABC):
@@ -127,12 +127,10 @@ class ReducedMatrixElementComposite(MatrixElementInterface):
         self.decouple()
         ret_val = None
         for factor, me_a, me_b in self.children:
-            if isinstance(factor, Symbol):
-                term = factor.subs(symbolic_replace_dict)
-            elif isinstance(factor, SymbolicWigner):
+            if isinstance(factor, SymbolicWigner):
                 term = factor.evaluate(symbolic_replace_dict)
             else:
-                term = factor
+                term = factor_eval(factor, symbolic_replace_dict)
             term *= me_a.evaluate(symbolic_replace_dict)
             term *= me_b.evaluate(symbolic_replace_dict)
             if ret_val:
