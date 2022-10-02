@@ -187,13 +187,19 @@ class TensorSpace(Iterable):
         return False
 
     def get_flat_basic_states(self):
+        basic_states = []
         flat_basic_states = []
         if self.pure_space:
-            flat_basic_states.append(self)
+            basic_states.append(self)
         else:
             subspace_1, subspace_2 = self.substructure
-            flat_basic_states.extend(subspace_1.get_flat_basic_states())
-            flat_basic_states.extend(subspace_2.get_flat_basic_states())
+            basic_states.extend(subspace_1.get_flat_basic_states())
+            basic_states.extend(subspace_2.get_flat_basic_states())
+        for bs in basic_states:
+            if bs not in flat_basic_states:
+                flat_basic_states.append(bs)   # Need to do it this way since the entries are unhashable
+        if flat_basic_states:
+            flat_basic_states.sort(key=lambda x: x.order)
         return flat_basic_states
 
 
