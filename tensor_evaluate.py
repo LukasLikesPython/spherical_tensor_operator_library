@@ -3,12 +3,21 @@ from sympy import KroneckerDelta
 from typing import Union, Optional, List
 from abc import ABC, abstractmethod
 import copy
+import logging
 
 from tensor_algebra import jsc
 from quantum_states import StateInterface
 from tensor_algebra import TensorAlgebra
 from tensor_operator import TensorOperator, TensorOperatorComposite
 from symbolic_wigner import Symbolic6j, Symbolic9j, SymbolicWigner, factor_eval
+
+logging.basicConfig(level=logging.DEBUG)
+
+
+class StateMismatchError(Exception):
+    """Raised when the space of the final state does not match that of the initial one or if the operator acts on
+    different spaces than the states provide."""
+    pass
 
 
 class MatrixElementInterface(ABC):
@@ -146,7 +155,24 @@ class BasicMatrixElementLeafInterface(MatrixElementInterface):
                  operator: Union[TensorOperator, TensorOperatorComposite, None], factor=1, recouple=True):
         self._bra = bra_state
         self._ket = ket_state
-        # TODO add unit operators, but first add space to states
+
+        if bra_state.space != ket_state.space:
+            raise StateMismatchError('[ERROR] Final and initial states do not have the same space configuration.')
+        state_basic_spaces = bra_state.space.get_flat_basic_states()
+        operator_basic_spaces = operator.space.get_flat_basic_states()
+        if state_basic_spaces != operator_basic_spaces:
+            logging.debug("Operator spaces do not match State spaces")
+            # Case A: The operator does not contain contributions for all spaces in the state -> Add unit operators
+            for sbs in state_basic_spaces:
+                if sbs not in operator_basic_spaces:
+                    unit_operator = TensorOperator(rank=0, factor=1, space=sbs, symbol=Symbol(f'I_{sbs.name}'))
+                    operator = operator.couple(unit_operator, operator.rank, 1)
+                    logging.debug(f"Adding the unit operator {unit_operator}")
+            # Case B: The operator acts on spaces which are not present in the state -> Throw an error
+            for obs in operator_basic_spaces:
+                if obs not in state_basic_spaces:
+                    raise StateMismatchError('[ERROR] The operator acts on spaces that are not present in the states.')
+
         if recouple:
             self._operator = TensorAlgebra.recouple(operator)  # Simplifies the operator structure
         else:
@@ -155,7 +181,6 @@ class BasicMatrixElementLeafInterface(MatrixElementInterface):
             self._factor = factor * operator.factor
         else:
             self._factor = factor
-
 
     @property
     def bra(self):
