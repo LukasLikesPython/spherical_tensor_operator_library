@@ -4,7 +4,6 @@ from sympy import Symbol, symbols
 from tensor_space import TensorSpace
 from quantum_states import BasicState
 
-
 space_a = TensorSpace('space_a', 0)
 space_b = TensorSpace('space_b', 1)
 space_c = TensorSpace('space_c', 2)
@@ -49,8 +48,8 @@ class TestQuantumStates(unittest.TestCase):
         other_order = state_c.couple((state_a.couple(state_b, Symbol("w"))), Symbol("v"))
         replace_dict = dict(zip(symbols(['w', 'a', 'b']), [1, 2, 1]))
         result = other_order.evaluate(replace_dict)
-        self.assertEqual("v(1(x2y1)c)", result)
-
+        self.assertEqual("v(1(x2y1)c)", result)  # Note the other quantum numbers are always next to their actual state
+        # This function is usually only called once a state has been completely decoupled
 
 if __name__ == '__main__':
     unittest.main()
