@@ -7,13 +7,13 @@ from typing import Optional, List
 
 class StateInterface(ABC):
 
-    def __init__(self, angular_quantum_number: Symbol, space: TensorSpace, other_quantum_number: Optional[Symbol] = None, factor=1,
-                 substructure: Optional[List[StateInterface]] = None, projection: Optional[Symbol] = None):
+    def __init__(self, angular_quantum_number: Symbol, space: TensorSpace,
+                 other_quantum_number: Optional[Symbol] = None, factor=1,
+                 substructure: Optional[List[StateInterface]] = None):
         self._angular_quantum_number = angular_quantum_number
         self._other_quantum_number = other_quantum_number
         self._factor = factor
         self._substructure = substructure
-        self._projection = projection
         self._space = space
 
     def __str__(self):
@@ -35,13 +35,6 @@ class StateInterface(ABC):
     @property
     def angular_quantum_number(self):
         return self._angular_quantum_number
-
-    @property
-    def anuglar_quantum_projection(self):
-        if self._projection is None:
-            return Symbol(f"m_{self.angular_quantum_number}")
-        else:
-            return self._projection
 
     @property
     def other_quantum_number(self):
@@ -107,10 +100,8 @@ class CoupledState(StateInterface):
 class BasicState(StateInterface):
 
     def __init__(self, angular_quantum_number: Symbol, space: TensorSpace,
-                 other_quantum_number: Optional[Symbol] = None, factor=1, substructure=None):
-        if substructure:
-            raise AttributeError('[ERROR] A basic state cannot have a substructure.')
-        super().__init__(angular_quantum_number, space, other_quantum_number, factor)
+                 other_quantum_number: Optional[Symbol] = None, factor=1):
+        super().__init__(angular_quantum_number, space, other_quantum_number, factor, substructure=None)
 
     def representation(self) -> str:
         return f"{self.angular_quantum_number}"
@@ -121,22 +112,3 @@ class BasicState(StateInterface):
         else:
             other = ""
         return f"{other}{self.angular_quantum_number.subs(symbolic_replace_dict)}"
-
-
-if __name__ == "__main__":
-    rel_space = TensorSpace('rel', 0)
-    spin_space = TensorSpace('spin', 1)
-    cm_space = TensorSpace('cm', 2)
-
-    sig1 = BasicState(Symbol('\u03C3\u2081'), spin_space)
-    sig2 = BasicState(Symbol('\u03C3\u2082'), spin_space)
-
-    print(sig1, sig2)
-    s = sig1.couple(sig2, Symbol('s'))
-    print(s, s.space)
-    l = BasicState(Symbol('l'), rel_space)
-    j = l.couple(s, Symbol('j'))
-    print(j, j.space)
-    j = s.couple(l, Symbol('j'))
-    print(j, j.space)
-    print(j.substructure[0], j.substructure[1])
