@@ -8,10 +8,10 @@ import logging
 from tensor_algebra import jsc
 from quantum_states import StateInterface
 from tensor_algebra import TensorAlgebra
-from tensor_operator import TensorOperator, TensorOperatorComposite
+from tensor_operator import TensorOperator, TensorOperatorComposite, TensorOperatorInterface
 from symbolic_wigner import Symbolic6j, Symbolic9j, SymbolicWigner, factor_eval
 
-logging.basicConfig(level=logging.DEBUG)
+logging.basicConfig(level=logging.WARNING)
 
 
 class StateMismatchError(Exception):
@@ -21,21 +21,52 @@ class StateMismatchError(Exception):
 
 
 class MatrixElementInterface(ABC):
+    """
+    Interface for Leaf and Composite MatrixElement classes.
+    """
 
     @abstractmethod
     def decouple(self):
+        """
+        Decouple tensor operators and the tensor space. The result is a reduced matrix element of operators, i.e.,
+        a product of operators that act in space x encompassed by the state for this space. E.g.
+        <j'(j1'j2')| {O1 x O2} |j(j1j2)> -> <j1'||O1||j1> * <j2'||O2||j2> (Note the example is simplified, it does not
+        consider ranks of the tensor operators). It can also return a sum of reduced matrix elements. Some Reduced
+        Matrix Elements can be decoupled further.
+        :return: ReducedMatrixElement
+        """
         pass
 
     @abstractmethod
-    def __str__(self):
+    def __str__(self) -> str:
+        """
+        Return a string representation of Matrix Elements.
+        :return: String
+        """
         pass
 
     @abstractmethod
-    def evaluate(self, symbolic_replace_dict):
+    def evaluate(self, symbolic_replace_dict: dict):
+        """
+        Evaluate the matrix elements by replacing all or some of the symbols in the objects.
+        :param symbolic_replace_dict: A dictionary that contains symbols and their replacement value as key-value pairs.
+        :return: Evaluation of the expression.
+        """
         pass
 
 
 class ReducedMatrixElementComposite(MatrixElementInterface):
+    """
+    A collection of ReducedMatrixElement objects. The class contains a list for the reduced_matrix_element_a and
+    reduced_matrix_element_b (short rme_a/b). The lists are ordered and contain a MatrixElementInterface list.
+    Elements between list a and b with the same index are multiplied, while this produced is added between different
+    indexes, e.g., rme_a = [me_a1, me_a2, me_a3, ...], rme_b = [me_b1, me_b2, me_b3, ...] means the actual operator
+    structure is me_a1 * me_b1 + me_a2 * me_b2 + me_a3 * me_b3 + ...
+    Note that the lists have the same length by construction. The factor list works similarly.
+
+    While it is possible to initialize this element directly, we recommend going via MatrixElement objects and use
+    their decouple function.
+    """
 
     def __init__(self, reduced_me_a: Union[List[ReducedMatrixElement], ReducedMatrixElement],
                  reduced_me_b: Union[List[ReducedMatrixElement], ReducedMatrixElement],
@@ -63,6 +94,10 @@ class ReducedMatrixElementComposite(MatrixElementInterface):
 
     @property
     def children(self):
+        """
+        :return: iterable object that contains the factor as the first element, the reduced_matrix_element_a as the
+        second and the reduced_matrix_element_b as the last.
+        """
         return zip(self.factor, self.reduced_matrix_element_a, self.reduced_matrix_element_b)
 
     def __str__(self):
@@ -128,11 +163,22 @@ class ReducedMatrixElementComposite(MatrixElementInterface):
         return self
 
     def append(self, other: ReducedMatrixElementComposite) -> None:
+        """
+        Append another ReduceMatrixElementComposite to the existing one.
+        :param other: ReducedMatrixElementComposite object.
+        :return: This action happens in place and does not return anything
+        """
         self._reduced_me_a.extend(other.reduced_matrix_element_a)
         self._reduced_me_b.extend(other.reduced_matrix_element_b)
         self._factor.extend(other.factor)
 
     def evaluate(self, symbolic_replace_dict):
+        """
+        Recursively go through all children and call their evaluate function to replace some or all of the symbolic
+        contributions in the expression.
+        :param symbolic_replace_dict: A dictionary that contains symbols and their replacement value as key-value pairs.
+        :return: The evaluated expression where symbolic components are fully or partially replaced by values.
+        """
         self.decouple()
         ret_val = None
         for factor, me_a, me_b in self.children:
@@ -150,9 +196,13 @@ class ReducedMatrixElementComposite(MatrixElementInterface):
 
 
 class BasicMatrixElementLeafInterface(MatrixElementInterface):
+    """
+    Inferface for ReducedMatrixElement and MatrixElement objects.
+    """
 
     def __init__(self, bra_state: StateInterface, ket_state: StateInterface,
-                 operator: Union[TensorOperator, TensorOperatorComposite, None], factor=1, recouple=True):
+                 operator: Union[TensorOperator, TensorOperatorComposite, None], factor: Union[int, float, Symbol] = 1,
+                 recouple=True):
         self._bra = bra_state
         self._ket = ket_state
 
@@ -198,7 +248,12 @@ class BasicMatrixElementLeafInterface(MatrixElementInterface):
     def factor(self):
         return self._factor
 
-    def __str__(self):
+    def __str__(self) -> str:
+        """
+        Visual representation of the object. See _state_representation for more information.
+
+        :return: String
+        """
         if isinstance(self.operator, TensorOperatorComposite):
             return " + ".join([f"{op.factor} * {self._state_representation(op.to_expression_no_factor())}"
                                if op.factor != 1 else f"{self._state_representation(op.to_expression_no_factor())}"
@@ -215,14 +270,34 @@ class BasicMatrixElementLeafInterface(MatrixElementInterface):
         return self.__str__()
 
     @abstractmethod
-    def _state_representation(self, operator):
+    def _state_representation(self, operator: TensorOperatorInterface) -> str:
+        """
+        Auxiliary function that is used in the __str__ function. The function is implemented differently between
+        MatrixElement objects and ReducedMatrixElement objects. It also takes care of a bra and ket notation, as the
+        default implementation in State objects is the ket notation. The state representation takes an operator as
+        input to keep it more flexible.
+
+        :param operator: TensorOperatorInterface object
+        :return: A representative String.
+        """
         pass
 
     @abstractmethod
-    def _basic_decouple(self, operator):
+    def _basic_decouple(self, operator: TensorOperatorInterface):
+        """
+        Auxiliary decouple formalism that helps to distinguish between MatrixElements and ReducedMatrixElements. It
+        also gives more flexibility, as it will decouple an arbitrary (part of the) operator.
+
+        :param operator: TensorOperatorInterface object
+        :return: ReducedMatrixElementComposite object.
+        """
         pass
 
     def decouple(self) -> Optional[ReducedMatrixElementComposite]:
+        """
+        Decouples the given matrix element. A different treatment happens for MatrixElement objects and
+        ReducedMatrixElement objects via the _basic_decouple function.
+        """
         if isinstance(self.operator, TensorOperatorComposite):
             red_me_composite = ReducedMatrixElementComposite([], [], [])
             for op in self.operator.children:
@@ -233,7 +308,13 @@ class BasicMatrixElementLeafInterface(MatrixElementInterface):
         else:
             return self._basic_decouple(self.operator)
 
-    def evaluate(self, symbol_replace_dict):
+    def evaluate(self, symbol_replace_dict: dict):
+        """
+        Replaces all or some of the symbolic expressions with values and returns the result.
+
+        :param symbol_replace_dict: A dictionary that contains symbols and their replacement value as key-value pairs.
+        :return: The evaluated expression where symbolic components are fully or partially replaced by values.
+        """
         if isinstance(self.factor, Symbol):
             ret_val = self.factor.subs(symbol_replace_dict)
         else:
@@ -247,19 +328,37 @@ class BasicMatrixElementLeafInterface(MatrixElementInterface):
         me = Symbol(f"<{self.bra.evaluate(symbol_replace_dict)}{separator}{self.operator.to_expression_no_factor()}"
                     f"{separator}{self.ket.evaluate(symbol_replace_dict)}>")
         return ret_val * me
-        #red_me_composite = self.decouple()
-        #return red_me_composite.evaluate(symbol_replace_dict)
 
 
 class MatrixElement(BasicMatrixElementLeafInterface):
+    """
+    Allows the user to create a matrix element object, containing a bra state, ket state and an operator.
+    We recommend to use this class to define objects and create other class instances by using the recouple function.
+    """
 
-    def _state_representation(self, operator):
-        return f"<{str(self.bra)[1:-1]}{self.bra.anuglar_quantum_projection}|{operator}{str(self.ket)[:-1]}" \
-               + f"{self.ket.anuglar_quantum_projection}>"
+    def _state_representation(self, operator: TensorOperatorInterface) -> str:
+        """
+        Auxiliary function that is used in the __str__ function. For completeness, we also provide the projection of the
+        angular quantum number. It is, however, not used in the evaluation process in this work. One needs it during the
+        application of the Wigner-Eckart theorem.
 
-    def _basic_decouple(self, operator) -> Optional[ReducedMatrixElementComposite]:
+        :param operator: TensorOperatorInterface object
+        :return: A representative String.
+        """
+        ket_angular_quantum_projection = f"m_{self.ket.angular_quantum_number}"
+        bra_angular_quantum_projection = f"m_{self.bra.angular_quantum_number}"
+        return f"<{str(self.bra)[1:-1]}{bra_angular_quantum_projection}|{operator}{str(self.ket)[:-1]}" \
+               + f"{ket_angular_quantum_projection}>"
+
+    def _basic_decouple(self, operator: TensorOperator) -> Optional[ReducedMatrixElementComposite]:
+        """
+        The function is called for TensorOperators. It decouples potential parts of the complete self.operator.
+
+        :param operator: A part of the self.Operator. It is broken down to TensorOperator objects.
+        :return: ReducedMatrixElementComposite or None
+        """
         if not self.bra.substructure or not self.ket.substructure:
-            print('[INFO] There is nothing to decouple')
+            logging.info('There is nothing to decouple')
             return None
 
         tensor_a, tensor_b = operator.substructure
@@ -282,8 +381,14 @@ class MatrixElement(BasicMatrixElementLeafInterface):
 
 
 class ReducedMatrixElement(BasicMatrixElementLeafInterface):
+    """
+    A class for reduced matrix elements. While it is possible, we do not recommend to initialize objects of this class
+    directly. We recommend users to initialize MatrixElement objects and use the decouple function to obtain reduced
+    matrix elements. Reduced matrix elements can be calculated using the Wigner-Eckart theorem.
+    """
 
-    def __init__(self, bra_state: StateInterface, ket_state: StateInterface, operator: Union[TensorOperator, TensorOperatorComposite]):
+    def __init__(self, bra_state: StateInterface, ket_state: StateInterface,
+                 operator: Union[TensorOperator, TensorOperatorComposite]):
         super().__init__(bra_state, ket_state, operator, factor=1, recouple=False)
         self._value = None
 
@@ -296,21 +401,18 @@ class ReducedMatrixElement(BasicMatrixElementLeafInterface):
     def __neg__(self, other: ReducedMatrixElement) -> bool:
         return not self.__eq__(other)
 
-    @property
-    def value(self):
-        if not self._value:
-            print(f"[WARNING] The value of the reduced matrix element {self} has not been set.")
-            return self._state_representation(self.operator)
-        return self._value
-
-    @value.setter
-    def value(self, other):
-        self._value = other
-
     def _state_representation(self, operator):
         return f"<{str(self.bra)[1:-1]}||{operator}|{self.ket}"
 
-    def _basic_decouple(self, operator) -> Optional[ReducedMatrixElementComposite]:
+    def _basic_decouple(self, operator: TensorOperator) -> Optional[ReducedMatrixElementComposite]:
+        """
+        In some cases, it is possible to decouple reduced matrix elements even further (e.g., when there are three
+        operators from distinct spaces). This method decouples those cases or returns None if no further recoupling is
+        possible.
+
+        :param operator: TensorOperator object
+        :return: ReducedMatrixElementComposite or None
+        """
         if operator.substructure:
             tensor_a, tensor_b = operator.substructure
             if tensor_a.space != tensor_b.space:
@@ -331,7 +433,7 @@ class ReducedMatrixElement(BasicMatrixElementLeafInterface):
                 reduced_matrix_element_b = ReducedMatrixElement(bra_b, ket_b, tensor_b)
                 return ReducedMatrixElementComposite(reduced_matrix_element_a, reduced_matrix_element_b,
                                                      new_factor * self.factor)
-        #print(f'[INFO] Further decoupling not possible for reduced matrix element {self}')
+        logging.info(f'[INFO] Further decoupling not possible for reduced matrix element {self}')
         return None
 
 

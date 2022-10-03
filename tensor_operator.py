@@ -3,7 +3,7 @@ from typing import Union
 from copy import deepcopy
 
 from tensor_space import TensorSpace, default_space
-# TODO make multiplication of two tensor operators to a coupling to rank 0
+
 
 class TensorOperatorInterface(ABC):
     """
