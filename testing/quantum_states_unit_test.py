@@ -1,5 +1,5 @@
 import unittest
-from sympy import Symbol
+from sympy import Symbol, symbols
 
 from tensor_space import TensorSpace
 from quantum_states import BasicState
@@ -11,7 +11,6 @@ space_c = TensorSpace('space_c', 2)
 
 state_a = BasicState(angular_quantum_number=Symbol('a'), space=space_a, other_quantum_number=Symbol('x'))
 state_b = BasicState(angular_quantum_number=Symbol('b'), space=space_b, other_quantum_number=Symbol('y'))
-state_a_2 = BasicState(angular_quantum_number=Symbol('a2'), space=space_a)
 state_c = BasicState(angular_quantum_number=Symbol('c'), space=space_c)
 
 
@@ -33,20 +32,25 @@ class TestQuantumStates(unittest.TestCase):
         self.assertEqual(Symbol('xy'), coupled_ab.other_quantum_number)
         self.assertEqual([state_a, state_b], coupled_ab.substructure)
 
-    """
-    sig1 = BasicState(Symbol('\u03C3\u2081'), spin_space)
-    sig2 = BasicState(Symbol('\u03C3\u2082'), spin_space)
+    def test_coupled_ordering(self):
+        right_order = state_a.couple(state_b, Symbol("w"))
+        other_order = state_b.couple(state_a, Symbol("w"))
+        self.assertEqual(right_order, other_order)
 
-    print(sig1, sig2)
-    s = sig1.couple(sig2, Symbol('s'))
-    print(s, s.space)
-    l = BasicState(Symbol('l'), rel_space)
-    j = l.couple(s, Symbol('j'))
-    print(j, j.space)
-    j = s.couple(l, Symbol('j'))
-    print(j, j.space)
-    print(j.substructure[0], j.substructure[1])
-    """
+        right_order = state_a.couple(state_b, Symbol("w")).couple(state_c, Symbol("v"))
+        other_order = state_c.couple((state_a.couple(state_b, Symbol("w"))), Symbol("v"))
+        self.assertEqual(right_order, other_order)
+
+    def test_substructure(self):
+        other_order = state_c.couple((state_a.couple(state_b, Symbol("w"))), Symbol("v"))
+        self.assertEqual("[|xyw(ab)>, |c>]", str(other_order.substructure))
+
+    def test_evaluate(self):
+        other_order = state_c.couple((state_a.couple(state_b, Symbol("w"))), Symbol("v"))
+        replace_dict = dict(zip(symbols(['w', 'a', 'b']), [1, 2, 1]))
+        result = other_order.evaluate(replace_dict)
+        self.assertEqual("v(1(x2y1)c)", result)
+
 
 if __name__ == '__main__':
     unittest.main()
