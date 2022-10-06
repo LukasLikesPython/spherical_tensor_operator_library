@@ -1,5 +1,5 @@
 from __future__ import annotations
-from sympy import KroneckerDelta
+from sympy import KroneckerDelta, Symbol
 from typing import Union, Optional, List
 from abc import ABC, abstractmethod
 import copy
@@ -433,5 +433,5 @@ class ReducedMatrixElement(BasicMatrixElementLeafInterface):
                 reduced_matrix_element_b = ReducedMatrixElement(bra_b, ket_b, tensor_b)
                 return ReducedMatrixElementComposite(reduced_matrix_element_a, reduced_matrix_element_b,
                                                      new_factor * self.factor)
-        logging.info(f'[INFO] Further decoupling not possible for reduced matrix element {self}')
+        logging.info(f'Further decoupling not possible for reduced matrix element {self}')
         return None
