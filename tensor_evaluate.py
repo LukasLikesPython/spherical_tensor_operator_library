@@ -323,11 +323,11 @@ class BasicMatrixElementLeafInterface(MatrixElementInterface):
             separator = "||"
         else:
             separator = "|"
-        if self.operator.factor != 1:
-            ret_val *= self.operator.factor
+        #if self.operator.factor != 1:  # TODO I think this is now implemented already, but make sure to check this thoroughly
+        #    ret_val *= self.operator.factor
         me = Symbol(f"<{self.bra.evaluate(symbol_replace_dict)}{separator}{self.operator.to_expression_no_factor()}"
                     f"{separator}{self.ket.evaluate(symbol_replace_dict)}>")
-        return ret_val * me
+        return me
 
 
 class MatrixElement(BasicMatrixElementLeafInterface):
@@ -373,7 +373,7 @@ class MatrixElement(BasicMatrixElementLeafInterface):
         ket_j_a = ket_a.angular_quantum_number
         ket_j_b = ket_b.angular_quantum_number
 
-        factor = pow(-1, bra_j + bra_j_b + ket_j_a + rank) / jsc(rank) * KroneckerDelta(bra_j, ket_j) \
+        factor = operator.factor * pow(-1, bra_j + bra_j_b + ket_j_a + rank) / jsc(rank) * KroneckerDelta(bra_j, ket_j) \
                  * Symbolic6j(bra_j_a, bra_j_b, bra_j, ket_j_b, ket_j_a, rank)
         reduced_matrix_element_a = ReducedMatrixElement(bra_a, ket_a, tensor_a)
         reduced_matrix_element_b = ReducedMatrixElement(bra_b, ket_b, tensor_b)
