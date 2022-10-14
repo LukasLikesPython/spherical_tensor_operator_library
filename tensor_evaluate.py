@@ -255,15 +255,15 @@ class BasicMatrixElementLeafInterface(MatrixElementInterface):
         :return: String
         """
         if isinstance(self.operator, TensorOperatorComposite):
-            return " + ".join([f"{op.factor} * {self._state_representation(op.to_expression_no_factor())}"
-                               if op.factor != 1 else f"{self._state_representation(op.to_expression_no_factor())}"
+            return " + ".join([f"{op.factor} * {self._state_representation(op)}"
+                               if op.factor != 1 else f"{self._state_representation(op)}"
                                for op in self.operator.children])
         else:
             factor = self.operator.factor
             if factor != 1:
-                output = f"{factor} * {self._state_representation(self.operator.to_expression_no_factor())}"
+                output = f"{factor} * {self._state_representation(self.operator)}"
             else:
-                output = f"{self._state_representation(self.operator.to_expression_no_factor())}"
+                output = f"{self._state_representation(self.operator)}"
             return output
 
     def __repr__(self):
@@ -347,8 +347,8 @@ class MatrixElement(BasicMatrixElementLeafInterface):
         """
         ket_angular_quantum_projection = f"m_{self.ket.angular_quantum_number}"
         bra_angular_quantum_projection = f"m_{self.bra.angular_quantum_number}"
-        return f"<{str(self.bra)[1:-1]}{bra_angular_quantum_projection}|{operator}{str(self.ket)[:-1]}" \
-               + f"{ket_angular_quantum_projection}>"
+        return f"<{str(self.bra)[1:-1]}{bra_angular_quantum_projection}|{operator.to_expression_no_factor()}" \
+               f"{str(self.ket)[:-1]}" + f"{ket_angular_quantum_projection}>"
 
     def _basic_decouple(self, operator: TensorOperator) -> Optional[ReducedMatrixElementComposite]:
         """
@@ -402,7 +402,7 @@ class ReducedMatrixElement(BasicMatrixElementLeafInterface):
         return not self.__eq__(other)
 
     def _state_representation(self, operator):
-        return f"<{str(self.bra)[1:-1]}||{operator}|{self.ket}"
+        return f"<{str(self.bra)[1:-1]}||{operator.to_expression_no_factor()}|{self.ket}"
 
     def _basic_decouple(self, operator: TensorOperator) -> Optional[ReducedMatrixElementComposite]:
         """

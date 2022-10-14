@@ -70,17 +70,38 @@ class TensorEvaluateTest(unittest.TestCase):
 
     def test_init_matrix_element_three_spaces(self):
         me = MatrixElement(bra_3, ket_3, tensor_op_3)
-        self.assertEqual(True, False)
+        self.assertEqual("-sqrt(3) * <p'P'J'(j'(l's')L')m_J'|{{{q_1 x q_1}_0 x {sig1_1 x sig2_1}_0}_0 x "
+                         "{P_1 x P_1}_0}_0|pPJ(j(ls)L)m_J> + -sqrt(15) * <p'P'J'(j'(l's')L')m_J'|{{{q_1 x q_1}_2 x "
+                         "{sig1_1 x sig2_1}_2}_0 x {P_1 x P_1}_0}_0|pPJ(j(ls)L)m_J>", str(me))
 
-    def test_matrix_element_decouple_three_spaces(self):
+    def test_matrix_element_single_decouple_three_spaces(self):
         me = MatrixElement(bra_3, ket_3, tensor_op_3)
         composite = me.decouple()
-        self.assertEqual(True, False)
+        self.assertEqual("-(-1)**(J' + L' + j)*sqrt(3)*KroneckerDelta(J, J') * SixJ(j' L' J'; L j 0) * "
+                         "<p'j'(l's')||{{q_1 x q_1}_0 x {sig1_1 x sig2_1}_0}_0||pj(ls)><P'L'||{P_1 x P_1}_0||PL> + "
+                         "-(-1)**(J' + L' + j)*sqrt(15)*KroneckerDelta(J, J') * SixJ(j' L' J'; L j 0) * "
+                         "<p'j'(l's')||{{q_1 x q_1}_2 x {sig1_1 x sig2_1}_2}_0||pj(ls)><P'L'||{P_1 x P_1}_0||PL>",
+                         str(composite))
+
+    def test_matrix_element_double_decouple_three_spaces(self): # TODO it might be better to substitute decouple with full decouple
+        me = MatrixElement(bra_3, ket_3, tensor_op_3)
+        composite = me.decouple().decouple()
+        print(composite)
+        self.assertEqual("-(-1)**(J' + L' + j)*sqrt(3)*KroneckerDelta(J, J') * SixJ(j' L' J'; L j 0) * sqrt(2*j + 1)*"
+                         "sqrt(2*j' + 1) * NineJ(0 0 0; l' s' j'; l s j) * <p'l'||{q_1 x q_1}_0||pl>"
+                         "<s'||{sig1_1 x sig2_1}_0||s><P'L'||{P_1 x P_1}_0||PL> + -(-1)**(J' + L' + j)*"
+                         "sqrt(15)*KroneckerDelta(J, J') * SixJ(j' L' J'; L j 0) * sqrt(2*j + 1)*sqrt(2*j' + 1) *"
+                         " NineJ(2 2 0; l' s' j'; l s j) * <p'l'||{q_1 x q_1}_2||pl><s'||{sig1_1 x sig2_1}_2||s>"
+                         "<P'L'||{P_1 x P_1}_0||PL>",
+                         str(composite))
 
     def test_evaluate_three_spaces(self):
         me = MatrixElement(bra_3, ket_3, tensor_op_3)
         result = me.decouple().evaluate(subsdict)
-        self.assertEqual(True, False)
+        print(result)
+        self.assertEqual("-sqrt(3)*<1||{sig1_1 x sig2_1}_0||1>*<P'0||{P_1 x P_1}_0||P0>*<p'1||{q_1 x q_1}_0||p1>/3 "
+                         "- sqrt(3)*<1||{sig1_1 x sig2_1}_2||1>*<P'0||{P_1 x P_1}_0||P0>*<p'1||{q_1 x q_1}_2||p1>/3",
+                         str(result))
 
 
 if __name__ == '__main__':

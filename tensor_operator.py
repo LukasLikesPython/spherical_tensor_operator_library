@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import Union
+from typing import Union, Optional
 from copy import deepcopy
 
 from tensor_space import TensorSpace, default_space
@@ -227,14 +227,14 @@ class TensorOperator(TensorOperatorInterface):
                + str(self.symbol).replace("[", "\\left\\lbrace").replace("]", "\\right\\rbrace"). \
                    replace(', ', ' \\otimes ').replace("'", "") + "_" + "{" + str(self.rank) + "}"
 
-    def to_expression(self):
+    def to_expression(self) -> str:
         return str(self.factor) + " * " + self.to_expression_no_factor()
 
-    def to_expression_no_factor(self):
+    def to_expression_no_factor(self) -> str:
         return str(self.symbol).replace("[", "{").replace("]", "}").replace(', ', ' x ').replace("'", "") \
                + "_" + str(self.rank)
 
-    def couple(self, other, rank, factor, order=True):
+    def couple(self, other, rank, factor, order=True) -> Optional[TensorOperatorInterface]:
         """
         Couple two Tensor Operators together to a new Tensor Operator of a given rank.
         There are two simplifications. First, the new rank has to fulfill
