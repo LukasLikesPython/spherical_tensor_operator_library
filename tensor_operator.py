@@ -43,7 +43,11 @@ class TensorOperatorInterface(ABC):
         pass
 
     @abstractmethod
-    def to_expression(self):
+    def to_expression(self) -> str:
+        pass
+
+    @abstractmethod
+    def to_expression_no_factor(self) -> str:
         pass
 
     @abstractmethod
@@ -94,6 +98,9 @@ class TensorOperatorComposite(TensorOperatorInterface):
 
     def to_expression(self):
         return " + ".join([child.to_expression() for child in self.children])
+
+    def to_expression_no_factor(self):
+        return " + ".join([child.to_expression_no_factor() for child in self.children])
 
     def add(self, other: TensorOperatorInterface):
         if isinstance(other, self.__class__):

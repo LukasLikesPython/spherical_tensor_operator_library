@@ -64,22 +64,23 @@ class TensorEvaluateTest(unittest.TestCase):
 
     def test_evaluate_two_spaces(self):
         me = MatrixElement(bra_2, ket_2, tensor_op_2)
-        me.evaluate(subsdict)  # TODO does this work? do I need the composite in between?
-        self.assertEqual(True, True)
+        result = me.decouple().evaluate(subsdict)
+        self.assertEqual("<1||{sig1_1 x sig2_1}_0||1>*<p'1||{q_1 x q_1}_0||p1>/3 +"
+                         " sqrt(5)*<1||{sig1_1 x sig2_1}_2||1>*<p'1||{q_1 x q_1}_2||p1>/3", str(result))
 
     def test_init_matrix_element_three_spaces(self):
         me = MatrixElement(bra_3, ket_3, tensor_op_3)
-        self.assertEqual(True, True)
+        self.assertEqual(True, False)
 
     def test_matrix_element_decouple_three_spaces(self):
         me = MatrixElement(bra_3, ket_3, tensor_op_3)
         composite = me.decouple()
-        self.assertEqual(True, True)
+        self.assertEqual(True, False)
 
     def test_evaluate_three_spaces(self):
         me = MatrixElement(bra_3, ket_3, tensor_op_3)
-        #me.evaluate(subsdict)  # TODO does this work? do I need the composite in between?
-        self.assertEqual(True, True)
+        result = me.decouple().evaluate(subsdict)
+        self.assertEqual(True, False)
 
 
 if __name__ == '__main__':
