@@ -148,9 +148,9 @@ class TensorAlgebra(object):
         First check whether any of the implemented recoupling methods can be applied. If so run the recoupling routine
         and return the output. If not return the original tensor.
 
-        :param tensor_op:
-        :param factor:
-        :return:
+        :param tensor_op: TensorOperator
+        :param factor: optional factor that can be applied during the recoupling
+        :return: TensorOperator or TensorOperatorComposite
         """
         out_tensor = tensor_op
         if cls._can_be_recoupled_ABxAB_AAxBB(out_tensor):
