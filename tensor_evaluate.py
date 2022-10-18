@@ -430,7 +430,13 @@ class ReducedMatrixElement(BasicMatrixElementLeafInterface):
     def __neg__(self, other: ReducedMatrixElement) -> bool:
         return not self.__eq__(other)
 
-    def _state_representation(self, operator):
+    def _state_representation(self, operator) -> str:
+        """
+        Returns a string representation of the matrix element for a given operator.
+
+        :param operator: The operator or sub-operator of the object
+        :return: String representation
+        """
         return f"<{str(self.bra)[1:-1]}||{operator.to_expression_no_factor()}|{self.ket}"
 
     def _basic_decouple(self, operator: TensorOperator) -> Optional[ReducedMatrixElementComposite]:
