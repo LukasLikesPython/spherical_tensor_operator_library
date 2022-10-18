@@ -1,5 +1,5 @@
 import unittest
-from tensor_space import TensorSpace
+from tensor_space import TensorSpace, DuplicateSpaceError
 
 
 class TestTensorSpace(unittest.TestCase):
@@ -9,7 +9,7 @@ class TestTensorSpace(unittest.TestCase):
     cm = TensorSpace('cm', 3)
 
     def test_creation_duplicate_error(self):
-        with self.assertRaises(AttributeError):
+        with self.assertRaises(DuplicateSpaceError):
             TensorSpace('rel', 1)
 
     def test_couple_spaces(self):

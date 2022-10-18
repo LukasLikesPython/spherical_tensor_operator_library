@@ -3,7 +3,9 @@ from abc import ABC, abstractmethod
 from typing import Union, Optional
 from copy import deepcopy
 
-from tensor_space import TensorSpace, default_space
+from tensor_space import TensorSpace
+
+default_space = TensorSpace('DEFAULT', 99)
 
 
 class TensorOperatorInterface(ABC):

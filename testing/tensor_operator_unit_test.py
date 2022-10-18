@@ -1,6 +1,5 @@
 import unittest
 from tensor_operator import TensorOperator
-from tensor_algebra import TensorAlgebra
 from tensor_space import TensorSpace
 
 prior_spin_space = TensorSpace('prior_spin', -1)

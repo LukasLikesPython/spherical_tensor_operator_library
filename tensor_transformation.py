@@ -7,6 +7,7 @@ class VectorOperator(object):
     Small auxiliary class in the transformation from vector operators to tensor operators
     The class needs the space in which the vector acts and a symbol for the vector
     """
+
     def __init__(self, space, symbol):
         self._space = space
         self._symbol = symbol
