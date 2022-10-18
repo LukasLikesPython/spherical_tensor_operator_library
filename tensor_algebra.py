@@ -173,7 +173,7 @@ class TensorAlgebra(object):
         :param factor: An optional factor that can be applied during the recoupling
         :return: A recoupled TensorOperator or TensorOperatorComposite
         """
-        out_tensor = cls._perform_recoupling(tensor_op.children[0], fact)
+        out_tensor = cls._perform_recoupling(tensor_op.children[0], factor)
         for child in tensor_op.children[1:]:
             res = cls._perform_recoupling(child, factor)
             if not res:
