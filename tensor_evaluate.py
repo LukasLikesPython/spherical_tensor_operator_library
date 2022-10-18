@@ -20,6 +20,11 @@ class StateMismatchError(Exception):
     pass
 
 
+class RankMismatchError(Exception):
+    """Raised when the rank of operators does not match."""
+    pass
+
+
 class MatrixElementInterface(ABC):
     """
     Interface for Leaf and Composite MatrixElement classes.
@@ -172,7 +177,16 @@ class ReducedMatrixElementComposite(MatrixElementInterface):
         self._reduced_me_b.extend(other.reduced_matrix_element_b)
         self._factor.extend(other.factor)
 
-    def evaluate(self, symbolic_replace_dict):
+    def me_evaluate(self, symbolic_replace_dict: dict):
+        """
+        Auxilliary function made so that the same structure as MatrixElements and ReducedMatrixElements is met.
+        This function just uses the evaluate function.
+        :param symbolic_replace_dict:
+        :return: The evaluated expression where symbolic components are fully or partially replaced by values.
+        """
+        return self.evaluate(symbolic_replace_dict)
+
+    def evaluate(self, symbolic_replace_dict: dict):
         """
         Recursively go through all children and call their evaluate function to replace some or all of the symbolic
         contributions in the expression.
@@ -186,8 +200,8 @@ class ReducedMatrixElementComposite(MatrixElementInterface):
                 term = factor.evaluate(symbolic_replace_dict)
             else:
                 term = factor_eval(factor, symbolic_replace_dict)
-            term *= me_a.evaluate(symbolic_replace_dict)
-            term *= me_b.evaluate(symbolic_replace_dict)
+            term *= me_a.me_evaluate(symbolic_replace_dict)
+            term *= me_b.me_evaluate(symbolic_replace_dict)
             if ret_val:
                 ret_val += term
             else:
@@ -295,8 +309,9 @@ class BasicMatrixElementLeafInterface(MatrixElementInterface):
 
     def decouple(self) -> Optional[ReducedMatrixElementComposite]:
         """
-        Decouples the given matrix element. A different treatment happens for MatrixElement objects and
-        ReducedMatrixElement objects via the _basic_decouple function.
+        Decouples the given matrix element one level. A different treatment happens for MatrixElement objects and
+        ReducedMatrixElement objects via the _basic_decouple function. It is possible that the result can be recoupled
+        further. Use the function full_decouple to get the final expression
         """
         if isinstance(self.operator, TensorOperatorComposite):
             red_me_composite = ReducedMatrixElementComposite([], [], [])
@@ -308,9 +323,18 @@ class BasicMatrixElementLeafInterface(MatrixElementInterface):
         else:
             return self._basic_decouple(self.operator)
 
-    def evaluate(self, symbol_replace_dict: dict):
+    def full_decouple(self) -> Optional[ReducedMatrixElementComposite]:
         """
-        Replaces all or some of the symbolic expressions with values and returns the result.
+        Decouples the given matrix element. A different treatment happens for MatrixElement objects and
+        ReducedMatrixElement objects via the _basic_decouple function.
+        """
+        composite = self.decouple()
+        return composite.decouple()  # Make use of the full decoupling routine in composites
+
+    def me_evaluate(self, symbol_replace_dict: dict):
+        """
+        Replaces all or some of the symbolic expressions with values and returns the result. This function is called
+        within the Composite evaluation routine.
 
         :param symbol_replace_dict: A dictionary that contains symbols and their replacement value as key-value pairs.
         :return: The evaluated expression where symbolic components are fully or partially replaced by values.
@@ -323,11 +347,13 @@ class BasicMatrixElementLeafInterface(MatrixElementInterface):
             separator = "||"
         else:
             separator = "|"
-        #if self.operator.factor != 1:  # TODO I think this is now implemented already, but make sure to check this thoroughly
-        #    ret_val *= self.operator.factor
         me = Symbol(f"<{self.bra.evaluate(symbol_replace_dict)}{separator}{self.operator.to_expression_no_factor()}"
                     f"{separator}{self.ket.evaluate(symbol_replace_dict)}>")
         return me
+
+    def evaluate(self, symbol_replace_dict: dict):
+        composite = self.full_decouple()
+        return composite.evaluate(symbol_replace_dict)
 
 
 class MatrixElement(BasicMatrixElementLeafInterface):
@@ -362,7 +388,10 @@ class MatrixElement(BasicMatrixElementLeafInterface):
             return None
 
         tensor_a, tensor_b = operator.substructure
-        rank = operator.rank
+        if tensor_a.rank != tensor_b.rank:
+            raise RankMismatchError('[ERROR] Ranks of sub-operators must match')
+
+        rank = tensor_a.rank
 
         bra_a, bra_b = self.bra.substructure
         ket_a, ket_b = self.ket.substructure
@@ -373,7 +402,7 @@ class MatrixElement(BasicMatrixElementLeafInterface):
         ket_j_a = ket_a.angular_quantum_number
         ket_j_b = ket_b.angular_quantum_number
 
-        factor = operator.factor * pow(-1, bra_j + bra_j_b + ket_j_a + rank) / jsc(rank) * KroneckerDelta(bra_j, ket_j) \
+        factor = operator.factor * pow(-1, bra_j + bra_j_b + ket_j_a + rank) / jsc(rank) * KroneckerDelta(bra_j, ket_j)\
                  * Symbolic6j(bra_j_a, bra_j_b, bra_j, ket_j_b, ket_j_a, rank)
         reduced_matrix_element_a = ReducedMatrixElement(bra_a, ket_a, tensor_a)
         reduced_matrix_element_b = ReducedMatrixElement(bra_b, ket_b, tensor_b)
