@@ -1,59 +1,51 @@
+from __future__ import annotations
+from typing import Optional
 from sympy import sqrt, I
+
 from tensor_operator import TensorOperator
 
 
-class VectorOperator(object):
+class WrongOperatorTypeError(Exception):
     """
-    Small auxiliary class in the transformation from vector operators to tensor operators
-    The class needs the space in which the vector acts and a symbol for the vector
+    This error gets raised when the Input type of the TensorOperator is not correct in the TensorsFromVector class.
     """
-
-    def __init__(self, space, symbol):
-        self._space = space
-        self._symbol = symbol
-
-    @property
-    def space(self):
-        return self._space
-
-    @property
-    def symbol(self):
-        return self._symbol
-
-    def to_tensor(self) -> TensorOperator:
-        return TensorOperator(rank=1, factor=1, space=self.space, symbol=self.symbol, substructure=None)
 
 
 class TensorFromVectors(object):
+    """
+    In equations, we are usually confronted with vectors rather than tensors. The transition from Vectors to Tensors
+    is accompanied by specific factors, depending on the type of vector coupling. This class pretends that the
+    basic tensors we construct are still vectors, and offers methods to join them with the vector operations
+    scalar_product and vector_product. The result is the tensor representation with the correct factors.
+    """
 
     @classmethod
-    def scalar_product(cls, vector_operator_1, vector_operator_2) -> TensorOperator:
-        if isinstance(vector_operator_1, VectorOperator) and isinstance(vector_operator_2, VectorOperator):
-            tensor_operator_1 = vector_operator_1.to_tensor()
-            tensor_operator_2 = vector_operator_2.to_tensor()
-        elif isinstance(vector_operator_1, TensorOperator) and isinstance(vector_operator_2, TensorOperator):
-            tensor_operator_1 = vector_operator_1
-            tensor_operator_2 = vector_operator_2
-        else:
-            raise ValueError(f"Input type {type(vector_operator_1)} with {type(vector_operator_2)} is not allowed.")
-        return tensor_operator_1.couple(tensor_operator_2, 0, -sqrt(3))
+    def scalar_product(cls, operator_1: TensorOperator, operator_2: TensorOperator) -> Optional[TensorOperator]:
+        """
+        Uses TensorOperator objects as input, pretends they are still vectors that are coupled via a scalar product
+        and returns the tensor product
+        {A_1 x B_1}_0 with the correct factor -sqrt(3).
+
+        :param operator_1: TensorOperator
+        :param operator_2: TensorOperator
+        :return: TensorOperator or None, depending on the constellation
+        """
+        if not(isinstance(operator_1, TensorOperator) and isinstance(operator_2, TensorOperator)):
+            raise WrongOperatorTypeError(f"Input type {type(operator_1)} with {type(operator_2)} is not allowed.")
+        return operator_1.couple(operator_2, 0, -sqrt(3))
 
     @classmethod
-    def vector_product(cls, vector_operator_1, vector_operator_2) -> TensorOperator:
-        if isinstance(vector_operator_1, VectorOperator) and isinstance(vector_operator_2, VectorOperator):
-            tensor_operator_1 = vector_operator_1.to_tensor()
-            tensor_operator_2 = vector_operator_2.to_tensor()
-        elif isinstance(vector_operator_1, TensorOperator) and isinstance(vector_operator_2, TensorOperator):
-            tensor_operator_1 = vector_operator_1
-            tensor_operator_2 = vector_operator_2
-        else:
-            raise ValueError(f"Input type {type(vector_operator_1)} with {type(vector_operator_2)} is not allowed.")
-        return tensor_operator_1.couple(tensor_operator_2, 1, -I * sqrt(2))
+    def vector_product(cls, operator_1: TensorOperator, operator_2: TensorOperator) -> Optional[TensorOperator]:
+        """
+        Uses TensorOperator objects as input, pretends they are still vectors that are coupled via a vector product
+        and returns the tensor product
+        {A_1 x B_1}_1 with the correct factor -I sqrt(2).
 
+        :param operator_1: TensorOperator
+        :param operator_2: TensorOperator
+        :return: TensorOperator or None, depending on the constellation
+        """
+        if not(isinstance(operator_1, TensorOperator) and isinstance(operator_2, TensorOperator)):
+            raise WrongOperatorTypeError(f"Input type {type(operator_1)} with {type(operator_2)} is not allowed.")
+        return operator_1.couple(operator_2, 1, -I * sqrt(2))
 
-if __name__ == "__main__":
-    vector_1 = VectorOperator("relative", "q")
-    vector_2 = VectorOperator("relative", "k")
-    print(TensorFromVectors.scalar_product(vector_1, vector_2))
-    print(TensorFromVectors.vector_product(vector_1, vector_2))
-    print(TensorFromVectors.vector_product(vector_1, vector_1))
