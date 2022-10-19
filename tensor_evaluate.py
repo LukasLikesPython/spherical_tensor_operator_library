@@ -179,7 +179,7 @@ class ReducedMatrixElementComposite(MatrixElementInterface):
 
     def me_evaluate(self, symbolic_replace_dict: dict):
         """
-        Auxilliary function made so that the same structure as MatrixElements and ReducedMatrixElements is met.
+        Auxiliary function made so that the same structure as MatrixElements and ReducedMatrixElements is met.
         This function just uses the evaluate function.
         :param symbolic_replace_dict:
         :return: The evaluated expression where symbolic components are fully or partially replaced by values.
@@ -211,7 +211,7 @@ class ReducedMatrixElementComposite(MatrixElementInterface):
 
 class BasicMatrixElementLeafInterface(MatrixElementInterface):
     """
-    Inferface for ReducedMatrixElement and MatrixElement objects.
+    Interface for ReducedMatrixElement and MatrixElement objects.
     """
 
     def __init__(self, bra_state: StateInterface, ket_state: StateInterface,
@@ -339,10 +339,6 @@ class BasicMatrixElementLeafInterface(MatrixElementInterface):
         :param symbol_replace_dict: A dictionary that contains symbols and their replacement value as key-value pairs.
         :return: The evaluated expression where symbolic components are fully or partially replaced by values.
         """
-        if isinstance(self.factor, Symbol):
-            ret_val = self.factor.subs(symbol_replace_dict)
-        else:
-            ret_val = self.factor
         if isinstance(self, ReducedMatrixElement):
             separator = "||"
         else:

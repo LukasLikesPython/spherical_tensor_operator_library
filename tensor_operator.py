@@ -42,7 +42,7 @@ class TensorOperatorInterface(ABC):
         return self.__mul__(factor)
 
     def __truediv__(self, other):
-        return self * (1/other)
+        return self * (1 / other)
 
     def __rtruediv__(self, other):
         return self.__truediv__(other)
@@ -90,7 +90,7 @@ class TensorOperatorInterface(ABC):
 
         :param other: TensorOperator or TensorOperatorComposite
         :param rank: The new rank to which the operators are coupled, checks for triangular equations
-        :param factor: A new factor that is mutliplied to existing factors
+        :param factor: A new factor that is multiplied to existing factors
         :return: TensorOperator or TensorOperatorComposite depending on the input or None if triangular equations are
         violated
         """
@@ -193,7 +193,7 @@ class TensorOperatorComposite(TensorOperatorInterface):
         """
         Auxiliary function that simplifies the list of children in place.
         It removes zero entries and combines matching entries to one.
-        This action is called whenever the children setter is used or a new instance of this object is instanciated.
+        This action is called whenever the children setter is used or a new instance of this object is created.
 
         :return: None
         """

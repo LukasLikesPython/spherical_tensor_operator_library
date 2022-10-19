@@ -261,7 +261,7 @@ class TensorSpace(Iterable):
             basic_states.extend(subspace_2.get_flat_basic_states())
         for bs in basic_states:
             if bs not in flat_basic_states:
-                flat_basic_states.append(bs)   # Need to do it this way since the entries are unhashable
+                flat_basic_states.append(bs)   # Need to do it this way since the entries are not hashable
         if flat_basic_states:
             flat_basic_states.sort(key=lambda x: x.order)
         return flat_basic_states

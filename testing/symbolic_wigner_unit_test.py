@@ -84,7 +84,6 @@ class TestSymbolicWigner(unittest.TestCase):
         symbol_list_6_3 = symbols(['j13', 'j14', 'j15', 'j16', 'j17', 'j18'])
         symb = Symbolic6j(*symbol_list_6_1) * Symbolic6j(*symbol_list_6_2) * Symbolic6j(*symbol_list_6_3) * 2
         symbol_list = symbol_list_6_1 + symbol_list_6_2 + symbol_list_6_3
-        symbol_int = 18
         j_range = [[1, 1, 2, 1, 1, 2, 1, 1, 0, 1, 1, 0, 3, 2, 1, 3, 2, 1]]
         for j1, j2, j3, j4, j5, j6, j7, j8, j9, j10, j11, j12, j13, j14, j15, j16, j17, j18 in j_range:
             symbolic_comb = symb.evaluate(dict(zip(symbol_list,

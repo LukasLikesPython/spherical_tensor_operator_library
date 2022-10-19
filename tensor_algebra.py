@@ -186,7 +186,7 @@ class TensorAlgebra(object):
     def _recouple_substructure(cls, tensor_op: Union[TensorOperator, TensorOperatorComposite]) \
             -> Union[None, TensorOperator, TensorOperatorComposite]:
         """
-        Performs an incremental recoupling step (see also _recouple_basic_substurcture). If the input is a
+        Performs an incremental recoupling step (see also _recouple_basic_substructure). If the input is a
         TensorOperatorComposite, it loops through all children and performs this step.
 
         :param tensor_op: TensorOperator or TensorOperatorComposite
@@ -253,7 +253,7 @@ class TensorAlgebra(object):
         :param tensor_op: The TensorOperator and TensorOperatorComposite under investigation
         :param factor: an optional factor that can be applied during the recoupling
         :param outer_loop: bool
-        :return:
+        :return: TensorOperator or TensorOperatorComposite
         """
         out_tensor = cls._recouple_step(tensor_op, factor)
 

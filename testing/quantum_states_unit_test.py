@@ -51,5 +51,6 @@ class TestQuantumStates(unittest.TestCase):
         self.assertEqual("v(1(x2y1)c)", result)  # Note the other quantum numbers are always next to their actual state
         # This function is usually only called once a state has been completely decoupled
 
+
 if __name__ == '__main__':
     unittest.main()

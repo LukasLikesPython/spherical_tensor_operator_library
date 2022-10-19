@@ -22,7 +22,6 @@ class TestTensorOperator(unittest.TestCase):
     kq1_block = other_block.couple(basic_block, 1, 1, False)
     kq2_block = other_block.couple(basic_block, 2, 1, False)
 
-
     def test_building_block(self):
         self.assertEqual("1 * q_1", str(self.basic_block))
         self.assertEqual("1 * k_1", str(self.other_block))
@@ -108,6 +107,7 @@ class TestTensorOperator(unittest.TestCase):
         self.assertEqual(self.qk0_block, self.kq0_block.commute())
         self.assertEqual(-1 * self.qk1_block, self.kq1_block.commute())
         self.assertEqual(self.qk2_block, self.kq2_block.commute())
+
 
 if __name__ == '__main__':
     unittest.main()

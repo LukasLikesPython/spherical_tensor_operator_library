@@ -56,8 +56,8 @@ class TestTensorAlgebra(unittest.TestCase):
         self.assertEqual('6 * {{{{k_1 x q_1}_1 x {sig1_1 x sig2_1}_1}_0 x q_1}_1 x P_1}_0',
                          str(TensorAlgebra._recouple_ABxCD_ABCxD(operator)))
 
-    def test_reouple_ABxC_AxBC(self):
-        print('test_reouple_ABxC_AxBC')
+    def test_recouple_ABxC_AxBC(self):
+        print('test_recouple_ABxC_AxBC')
         operator = self.qs1.couple(self.sig2, 1, 1)  # Artificial test case, not a real operator
         self.assertEqual('sqrt(3)/3 * {q_1 x {sig1_1 x sig2_1}_0}_1 + -1 * {q_1 x {sig1_1 x sig2_1}_1}_1'
                          + ' + sqrt(15)/3 * {q_1 x {sig1_1 x sig2_1}_2}_1',
