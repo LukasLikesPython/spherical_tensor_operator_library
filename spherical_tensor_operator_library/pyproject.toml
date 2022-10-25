@@ -18,6 +18,7 @@ classifiers = [
 ]
 dependencies = [
     "sympy>=1.10",
+    "pytest",
 ]
 
 [project.urls]
