@@ -10,9 +10,14 @@ class StateInterface(ABC):
     Interface for BasicStates and CoupledStates
     """
 
-    def __init__(self, angular_quantum_number: Symbol, space: TensorSpace,
-                 other_quantum_number: Optional[Symbol] = None, factor=1,
-                 substructure: Optional[List[StateInterface]] = None):
+    def __init__(
+        self,
+        angular_quantum_number: Symbol,
+        space: TensorSpace,
+        other_quantum_number: Optional[Symbol] = None,
+        factor=1,
+        substructure: Optional[List[StateInterface]] = None,
+    ):
         self._angular_quantum_number = angular_quantum_number
         self._other_quantum_number = other_quantum_number
         self._factor = factor
@@ -29,10 +34,12 @@ class StateInterface(ABC):
         return self.__str__()
 
     def __eq__(self, other: StateInterface) -> bool:
-        if self.angular_quantum_number == other.angular_quantum_number \
-                and self.other_quantum_number == other.other_quantum_number \
-                and self.factor == other.factor \
-                and self.substructure == other.substructure:
+        if (
+            self.angular_quantum_number == other.angular_quantum_number
+            and self.other_quantum_number == other.other_quantum_number
+            and self.factor == other.factor
+            and self.substructure == other.substructure
+        ):
             return True
 
     @property
@@ -89,18 +96,20 @@ class StateInterface(ABC):
             second = other
         new_factor = first.factor * second.factor
         new_space = first.space + second.space
-        new_other_quantum_number = ''
+        new_other_quantum_number = ""
         if first.other_quantum_number:
             new_other_quantum_number = first.other_quantum_number
         if second.other_quantum_number:
             new_other_quantum_number = Symbol(f"{new_other_quantum_number}{second.other_quantum_number}")
         if not new_other_quantum_number:
             new_other_quantum_number = None
-        return CoupledState(angular_quantum_number=new_quantum_number,
-                            space=new_space,
-                            substructure=[first, second],
-                            other_quantum_number=new_other_quantum_number,
-                            factor=new_factor)
+        return CoupledState(
+            angular_quantum_number=new_quantum_number,
+            space=new_space,
+            substructure=[first, second],
+            other_quantum_number=new_other_quantum_number,
+            factor=new_factor,
+        )
 
 
 class CoupledState(StateInterface):
@@ -110,13 +119,21 @@ class CoupledState(StateInterface):
     we can recouple them when we need it.
     """
 
-    def __init__(self, angular_quantum_number: Symbol, space: TensorSpace, substructure: List[StateInterface],
-                 other_quantum_number: Optional[Symbol] = None, factor=1):
+    def __init__(
+        self,
+        angular_quantum_number: Symbol,
+        space: TensorSpace,
+        substructure: List[StateInterface],
+        other_quantum_number: Optional[Symbol] = None,
+        factor=1,
+    ):
         super().__init__(angular_quantum_number, space, other_quantum_number, factor, substructure)
 
     def representation(self) -> str:
-        return f"{self.angular_quantum_number}" \
-               f"({self.substructure[0].representation()}{self.substructure[1].representation()})"
+        return (
+            f"{self.angular_quantum_number}"
+            f"({self.substructure[0].representation()}{self.substructure[1].representation()})"
+        )
 
     def evaluate(self, symbolic_replace_dict: dict) -> str:
         """
@@ -126,9 +143,11 @@ class CoupledState(StateInterface):
         :param symbolic_replace_dict: A dictionary that contains symbols and their replacement value as key-value pairs.
         :return: A String representation of the state, but with evaluated symbols
         """
-        return f"{self.angular_quantum_number.subs(symbolic_replace_dict)}" \
-               f"({self.substructure[0].evaluate(symbolic_replace_dict)}" \
-               f"{self.substructure[1].evaluate(symbolic_replace_dict)})"
+        return (
+            f"{self.angular_quantum_number.subs(symbolic_replace_dict)}"
+            f"({self.substructure[0].evaluate(symbolic_replace_dict)}"
+            f"{self.substructure[1].evaluate(symbolic_replace_dict)})"
+        )
 
 
 class BasicState(StateInterface):
@@ -137,8 +156,13 @@ class BasicState(StateInterface):
     calculation. They mark the target to which we ultimately want to decouple our states and operators.
     """
 
-    def __init__(self, angular_quantum_number: Symbol, space: TensorSpace,
-                 other_quantum_number: Optional[Symbol] = None, factor=1):
+    def __init__(
+        self,
+        angular_quantum_number: Symbol,
+        space: TensorSpace,
+        other_quantum_number: Optional[Symbol] = None,
+        factor=1,
+    ):
         super().__init__(angular_quantum_number, space, other_quantum_number, factor, substructure=None)
 
     def representation(self) -> str:

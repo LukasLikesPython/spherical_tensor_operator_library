@@ -67,8 +67,11 @@ class TensorAlgebra(object):
             return False
         tensor_a, tensor_b = first_pair.substructure
         tensor_c, tensor_d = second_pair.substructure
-        if tensor_a.space <= tensor_b.space and tensor_a.space <= tensor_c.space and \
-                max([tensor_a.space.order, tensor_b.space.order, tensor_c.space.order]) < tensor_d.space.order:
+        if (
+            tensor_a.space <= tensor_b.space
+            and tensor_a.space <= tensor_c.space
+            and max([tensor_a.space.order, tensor_b.space.order, tensor_c.space.order]) < tensor_d.space.order
+        ):
             return True
         return False
 
@@ -88,8 +91,11 @@ class TensorAlgebra(object):
         if not first_pair.substructure:
             return False
         tensor_a, tensor_b = first_pair.substructure
-        if tensor_a.space == tensor_b.space or tensor_b.space == tensor_c.space \
-                or tensor_b.space.contains(tensor_c.space):
+        if (
+            tensor_a.space == tensor_b.space
+            or tensor_b.space == tensor_c.space
+            or tensor_b.space.contains(tensor_c.space)
+        ):
             return False
         elif tensor_a.space == tensor_c.space or tensor_a.space <= tensor_c.space < tensor_b.space:
             return True
@@ -113,8 +119,9 @@ class TensorAlgebra(object):
         tensor_a, tensor_b = first_pair.substructure
         if tensor_a.space == tensor_b.space or tensor_a.space == tensor_c.space:
             return False
-        elif tensor_a.space.order < min([tensor_c.space.order, tensor_b.space.order]) and \
-                (tensor_b.space.contains(tensor_c.space) or tensor_c.space.contains(tensor_b.space)):
+        elif tensor_a.space.order < min([tensor_c.space.order, tensor_b.space.order]) and (
+            tensor_b.space.contains(tensor_c.space) or tensor_c.space.contains(tensor_b.space)
+        ):
             return True
         return False
 
@@ -136,14 +143,16 @@ class TensorAlgebra(object):
         tensor_b, tensor_c = second_pair.substructure
         if tensor_b.space == tensor_c.space or tensor_a.space == tensor_c.space:
             return False
-        elif tensor_c.space.order >= max([tensor_a.space.order, tensor_b.space.order]) and \
-                (tensor_a.space.contains(tensor_b.space) or tensor_b.space.contains(tensor_a.space)):
+        elif tensor_c.space.order >= max([tensor_a.space.order, tensor_b.space.order]) and (
+            tensor_a.space.contains(tensor_b.space) or tensor_b.space.contains(tensor_a.space)
+        ):
             return True
         return False
 
     @classmethod
-    def _perform_recoupling(cls, tensor_op: TensorOperator, factor=1) \
-            -> Union[None, TensorOperator, TensorOperatorComposite]:
+    def _perform_recoupling(
+        cls, tensor_op: TensorOperator, factor=1
+    ) -> Union[None, TensorOperator, TensorOperatorComposite]:
         """
         First check whether any of the implemented recoupling methods can be applied. If so run the recoupling routine
         and return the output. If not return the original tensor.
@@ -164,8 +173,9 @@ class TensorAlgebra(object):
         return out_tensor
 
     @classmethod
-    def _perform_recoupling_composite(cls, tensor_op: TensorOperatorComposite, factor=1) \
-            -> Union[None, TensorOperator, TensorOperatorComposite]:
+    def _perform_recoupling_composite(
+        cls, tensor_op: TensorOperatorComposite, factor=1
+    ) -> Union[None, TensorOperator, TensorOperatorComposite]:
         """
         See also _perform_recoupling method. This method is called for composites and loops through the children.
 
@@ -183,8 +193,9 @@ class TensorAlgebra(object):
         return out_tensor
 
     @classmethod
-    def _recouple_substructure(cls, tensor_op: Union[TensorOperator, TensorOperatorComposite]) \
-            -> Union[None, TensorOperator, TensorOperatorComposite]:
+    def _recouple_substructure(
+        cls, tensor_op: Union[TensorOperator, TensorOperatorComposite]
+    ) -> Union[None, TensorOperator, TensorOperatorComposite]:
         """
         Performs an incremental recoupling step (see also _recouple_basic_substructure). If the input is a
         TensorOperatorComposite, it loops through all children and performs this step.
@@ -204,8 +215,9 @@ class TensorAlgebra(object):
             return out_tensor
 
     @classmethod
-    def _recouple_basic_substructure(cls, tensor_op: Union[TensorOperator, TensorOperatorComposite]) \
-            -> Union[None, TensorOperator, TensorOperatorComposite]:
+    def _recouple_basic_substructure(
+        cls, tensor_op: Union[TensorOperator, TensorOperatorComposite]
+    ) -> Union[None, TensorOperator, TensorOperatorComposite]:
         """
         Idea: Recoupling should take place starting from the innermost operators going to the outermost operators.
         A recursive call to the recouple method takes care of this.
@@ -223,8 +235,9 @@ class TensorAlgebra(object):
         return out_tensor
 
     @classmethod
-    def _recouple_step(cls, tensor_op: Union[TensorOperator, TensorOperatorComposite], factor=1) \
-            -> Optional[TensorOperator, TensorOperatorComposite]:
+    def _recouple_step(
+        cls, tensor_op: Union[TensorOperator, TensorOperatorComposite], factor=1
+    ) -> Optional[TensorOperator, TensorOperatorComposite]:
         """
         Basic recouple step for a given tensor_op. Depending on whether the input is a TensorOperator or
         TensorOperatorComposite, the methods _perform_recoupling or _perform_recoupling_composite are called.
@@ -243,8 +256,9 @@ class TensorAlgebra(object):
         return out_tensor
 
     @classmethod
-    def recouple(cls, tensor_op: Union[TensorOperator, TensorOperatorComposite], factor=1,
-                 outer_loop=True) -> Union[TensorOperator, TensorOperatorComposite]:
+    def recouple(
+        cls, tensor_op: Union[TensorOperator, TensorOperatorComposite], factor=1, outer_loop=True
+    ) -> Union[TensorOperator, TensorOperatorComposite]:
         """
         Perform the action recoupling if possible. The recoupling takes place in the _recouple_step method. When the
         outer_loop flag is set to True this method keeps track of changes and repeats the recoupling until no further
@@ -258,7 +272,7 @@ class TensorAlgebra(object):
         out_tensor = cls._recouple_step(tensor_op, factor)
 
         if out_tensor == tensor_op:
-            logging.info(f'Recoupling was not possible for tensor operator {tensor_op}')
+            logging.info(f"Recoupling was not possible for tensor operator {tensor_op}")
         if out_tensor != tensor_op and outer_loop:
             prev_tensor = None
             while prev_tensor != out_tensor:  # Repeat recoupling steps until no further change happens
@@ -306,8 +320,8 @@ class TensorAlgebra(object):
                         out_tensor = new_tensor
                     else:
                         out_tensor += new_tensor
-        logging.info('recouple ABxCD -> ACxBD')
-        logging.debug(f'{tensor_op} -> {out_tensor}')
+        logging.info("recouple ABxCD -> ACxBD")
+        logging.debug(f"{tensor_op} -> {out_tensor}")
         return out_tensor
 
     @staticmethod
@@ -332,8 +346,9 @@ class TensorAlgebra(object):
         rank = tensor_op.rank
         out_tensor = None
         for abc in range(abs(c - ab), c + ab + 1):
-            operator_factor = jsc(cd, abc) * wigner_6j(c, ab, abc, rank, d, cd) * new_factor \
-                              * pow(-1, d + c + ab + rank)
+            operator_factor = (
+                jsc(cd, abc) * wigner_6j(c, ab, abc, rank, d, cd) * new_factor * pow(-1, d + c + ab + rank)
+            )
             if operator_factor != 0:
                 triplet = first_pair.couple(tensor_c, abc, 1)
                 if not triplet:
@@ -343,8 +358,8 @@ class TensorAlgebra(object):
                     out_tensor = new_tensor
                 else:
                     out_tensor += new_tensor
-        logging.info('recouple ABxCD -> ABCxD')
-        logging.debug(f'{tensor_op} -> {out_tensor}')
+        logging.info("recouple ABxCD -> ABCxD")
+        logging.debug(f"{tensor_op} -> {out_tensor}")
         return out_tensor
 
     @staticmethod
@@ -380,8 +395,8 @@ class TensorAlgebra(object):
                     out_tensor = new_tensor
                 else:
                     out_tensor += new_tensor
-        logging.info('recouple ABxC -> ACxB')
-        logging.debug(f'{tensor_op} -> {out_tensor}')
+        logging.info("recouple ABxC -> ACxB")
+        logging.debug(f"{tensor_op} -> {out_tensor}")
         return out_tensor
 
     @staticmethod
@@ -417,6 +432,6 @@ class TensorAlgebra(object):
                     out_tensor = new_tensor
                 else:
                     out_tensor += new_tensor
-        logging.info('recouple ABxC -> AxBC')
-        logging.debug(f'{tensor_op} -> {out_tensor}')
+        logging.info("recouple ABxC -> AxBC")
+        logging.debug(f"{tensor_op} -> {out_tensor}")
         return out_tensor

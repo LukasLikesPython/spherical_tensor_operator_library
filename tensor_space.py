@@ -58,7 +58,7 @@ class SpaceIterator(Iterator):
         Auxiliary function for the iterator initialization.
         The idea is to loop through all subspaces of the space to construct the _collection list, which is later used
         in the iteration steps.
-        
+
         :param element_list: A list of integers, which provides a map of the sub-spaces of the space.
         :return: Sub-Space or None
         """
@@ -114,7 +114,7 @@ class TensorSpace(Iterable):
             self.space_dict[name] = self
         else:
             other = self.space_dict[name]
-            if not(other.order == self.order and other.substructure == self.substructure):
+            if not (other.order == self.order and other.substructure == self.substructure):
                 raise DuplicateSpaceError(f'A space with the name "{name}" and different properties already exists.')
 
     @property
@@ -150,7 +150,7 @@ class TensorSpace(Iterable):
         if self == other:
             return self
         else:
-            new_name = '{' + self.name + ' x ' + other.name + '}'
+            new_name = "{" + self.name + " x " + other.name + "}"
             new_order = min(self.order, other.order)
             return self.__class__(new_name, new_order, substructure=[self, other])
 
@@ -261,7 +261,7 @@ class TensorSpace(Iterable):
             basic_states.extend(subspace_2.get_flat_basic_states())
         for bs in basic_states:
             if bs not in flat_basic_states:
-                flat_basic_states.append(bs)   # Need to do it this way since the entries are not hashable
+                flat_basic_states.append(bs)  # Need to do it this way since the entries are not hashable
         if flat_basic_states:
             flat_basic_states.sort(key=lambda x: x.order)
         return flat_basic_states

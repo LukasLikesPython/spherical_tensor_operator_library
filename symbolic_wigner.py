@@ -70,7 +70,7 @@ class SymbolicWigner(ABC):
         return self.__mul__(other)
 
     def __truediv__(self, other):
-        return self.__mul__(1/other)
+        return self.__mul__(1 / other)
 
 
 class SymbolicWignerComposite(SymbolicWigner):
@@ -135,6 +135,7 @@ class Symbolic6j(SymbolicWigner):
     """
     Auxiliary construct to handle Wigner-6j symbols in a symbolic way.
     """
+
     six_j_cache = {}
 
     def __init__(self, j1, j2, j3, j4, j5, j6, factor: Union[int, float, Symbol] = 1):
@@ -158,8 +159,17 @@ class Symbolic6j(SymbolicWigner):
         :param symbol_replace_dict: dictionary that contains symbols as keys and their replacement values as values
         :return: the evaluated 6j symbol
         """
-        j1, j2, j3, j4, j5, j6 = [x.subs(symbol_replace_dict) if isinstance(x, Symbol) else x for x in
-                                  (self.j1, self.j2, self.j3, self.j4, self.j5, self.j6, )]
+        j1, j2, j3, j4, j5, j6 = [
+            x.subs(symbol_replace_dict) if isinstance(x, Symbol) else x
+            for x in (
+                self.j1,
+                self.j2,
+                self.j3,
+                self.j4,
+                self.j5,
+                self.j6,
+            )
+        ]
         factor = factor_eval(self.factor, symbol_replace_dict)
         key = (j1, j2, j3, j4, j5, j6)
         if key in self.six_j_cache:
@@ -191,8 +201,10 @@ class Symbolic9j(SymbolicWigner):
         self.factor = factor
 
     def __str__(self):
-        return f"{self.factor} * NineJ({self.j1} {self.j2} {self.j3}; {self.j4} {self.j5} {self.j6}; {self.j7} " \
-                + f"{self.j8} {self.j9})"
+        return (
+            f"{self.factor} * NineJ({self.j1} {self.j2} {self.j3}; {self.j4} {self.j5} {self.j6}; {self.j7} "
+            + f"{self.j8} {self.j9})"
+        )
 
     def evaluate(self, symbol_replace_dict: dict):
         """
@@ -202,9 +214,10 @@ class Symbolic9j(SymbolicWigner):
         :param symbol_replace_dict: dictionary that contains symbols as keys and their replacement values as values
         :return: the evaluated 9j symbol
         """
-        j1, j2, j3, j4, j5, j6, j7, j8, j9 = [x.subs(symbol_replace_dict) if isinstance(x, Symbol) else x for x in
-                                              (self.j1, self.j2, self.j3, self.j4, self.j5, self.j6, self.j7, self.j8,
-                                               self.j9)]
+        j1, j2, j3, j4, j5, j6, j7, j8, j9 = [
+            x.subs(symbol_replace_dict) if isinstance(x, Symbol) else x
+            for x in (self.j1, self.j2, self.j3, self.j4, self.j5, self.j6, self.j7, self.j8, self.j9)
+        ]
         factor = factor_eval(self.factor, symbol_replace_dict)
         key = (j1, j2, j3, j4, j5, j6, j7, j8, j9)
         if key in self.nine_j_cache:

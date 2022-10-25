@@ -30,7 +30,7 @@ class TensorFromVectors(object):
         :param operator_2: TensorOperator
         :return: TensorOperator or None, depending on the constellation
         """
-        if not(isinstance(operator_1, TensorOperator) and isinstance(operator_2, TensorOperator)):
+        if not (isinstance(operator_1, TensorOperator) and isinstance(operator_2, TensorOperator)):
             raise WrongOperatorTypeError(f"Input type {type(operator_1)} with {type(operator_2)} is not allowed.")
         return operator_1.couple(operator_2, 0, -sqrt(3))
 
@@ -45,7 +45,6 @@ class TensorFromVectors(object):
         :param operator_2: TensorOperator
         :return: TensorOperator or None, depending on the constellation
         """
-        if not(isinstance(operator_1, TensorOperator) and isinstance(operator_2, TensorOperator)):
+        if not (isinstance(operator_1, TensorOperator) and isinstance(operator_2, TensorOperator)):
             raise WrongOperatorTypeError(f"Input type {type(operator_1)} with {type(operator_2)} is not allowed.")
         return operator_1.couple(operator_2, 1, -I * sqrt(2))
-

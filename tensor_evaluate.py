@@ -17,11 +17,13 @@ logging.basicConfig(level=logging.WARNING)
 class StateMismatchError(Exception):
     """Raised when the space of the final state does not match that of the initial one or if the operator acts on
     different spaces than the states provide."""
+
     pass
 
 
 class RankMismatchError(Exception):
     """Raised when the rank of operators does not match."""
+
     pass
 
 
@@ -73,9 +75,12 @@ class ReducedMatrixElementComposite(MatrixElementInterface):
     their decouple function.
     """
 
-    def __init__(self, reduced_me_a: Union[List[ReducedMatrixElement], ReducedMatrixElement],
-                 reduced_me_b: Union[List[ReducedMatrixElement], ReducedMatrixElement],
-                 factor):
+    def __init__(
+        self,
+        reduced_me_a: Union[List[ReducedMatrixElement], ReducedMatrixElement],
+        reduced_me_b: Union[List[ReducedMatrixElement], ReducedMatrixElement],
+        factor,
+    ):
         if isinstance(reduced_me_a, list):
             self._reduced_me_a = reduced_me_a
             self._reduced_me_b = reduced_me_b
@@ -106,8 +111,8 @@ class ReducedMatrixElementComposite(MatrixElementInterface):
         return zip(self.factor, self.reduced_matrix_element_a, self.reduced_matrix_element_b)
 
     def __str__(self):
-        content = [f'{x[0]} * {x[1]}{x[2]}' for x in self.children]
-        return ' + '.join(content)
+        content = [f"{x[0]} * {x[1]}{x[2]}" for x in self.children]
+        return " + ".join(content)
 
     def __eq__(self, other: ReducedMatrixElementComposite) -> bool:
         if self.children == other.children:
@@ -214,14 +219,19 @@ class BasicMatrixElementLeafInterface(MatrixElementInterface):
     Interface for ReducedMatrixElement and MatrixElement objects.
     """
 
-    def __init__(self, bra_state: StateInterface, ket_state: StateInterface,
-                 operator: Union[TensorOperator, TensorOperatorComposite, None], factor: Union[int, float, Symbol] = 1,
-                 recouple=True):
+    def __init__(
+        self,
+        bra_state: StateInterface,
+        ket_state: StateInterface,
+        operator: Union[TensorOperator, TensorOperatorComposite, None],
+        factor: Union[int, float, Symbol] = 1,
+        recouple=True,
+    ):
         self._bra = bra_state
         self._ket = ket_state
 
         if bra_state.space != ket_state.space:
-            raise StateMismatchError('[ERROR] Final and initial states do not have the same space configuration.')
+            raise StateMismatchError("[ERROR] Final and initial states do not have the same space configuration.")
         state_basic_spaces = bra_state.space.get_flat_basic_states()
         operator_basic_spaces = operator.space.get_flat_basic_states()
         if state_basic_spaces != operator_basic_spaces:
@@ -229,13 +239,13 @@ class BasicMatrixElementLeafInterface(MatrixElementInterface):
             # Case A: The operator does not contain contributions for all spaces in the state -> Add unit operators
             for sbs in state_basic_spaces:
                 if sbs not in operator_basic_spaces:
-                    unit_operator = TensorOperator(rank=0, factor=1, space=sbs, symbol=Symbol(f'I_{sbs.name}'))
+                    unit_operator = TensorOperator(rank=0, factor=1, space=sbs, symbol=Symbol(f"I_{sbs.name}"))
                     operator = operator.couple(unit_operator, operator.rank, 1)
                     logging.debug(f"Adding the unit operator {unit_operator}")
             # Case B: The operator acts on spaces which are not present in the state -> Throw an error
             for obs in operator_basic_spaces:
                 if obs not in state_basic_spaces:
-                    raise StateMismatchError('[ERROR] The operator acts on spaces that are not present in the states.')
+                    raise StateMismatchError("[ERROR] The operator acts on spaces that are not present in the states.")
 
         if recouple:
             self._operator = TensorAlgebra.recouple(operator)  # Simplifies the operator structure
@@ -269,9 +279,14 @@ class BasicMatrixElementLeafInterface(MatrixElementInterface):
         :return: String
         """
         if isinstance(self.operator, TensorOperatorComposite):
-            return " + ".join([f"{op.factor} * {self._state_representation(op)}"
-                               if op.factor != 1 else f"{self._state_representation(op)}"
-                               for op in self.operator.children])
+            return " + ".join(
+                [
+                    f"{op.factor} * {self._state_representation(op)}"
+                    if op.factor != 1
+                    else f"{self._state_representation(op)}"
+                    for op in self.operator.children
+                ]
+            )
         else:
             factor = self.operator.factor
             if factor != 1:
@@ -343,8 +358,10 @@ class BasicMatrixElementLeafInterface(MatrixElementInterface):
             separator = "||"
         else:
             separator = "|"
-        me = Symbol(f"<{self.bra.evaluate(symbol_replace_dict)}{separator}{self.operator.to_expression_no_factor()}"
-                    f"{separator}{self.ket.evaluate(symbol_replace_dict)}>")
+        me = Symbol(
+            f"<{self.bra.evaluate(symbol_replace_dict)}{separator}{self.operator.to_expression_no_factor()}"
+            f"{separator}{self.ket.evaluate(symbol_replace_dict)}>"
+        )
         return me
 
     def evaluate(self, symbol_replace_dict: dict):
@@ -369,8 +386,10 @@ class MatrixElement(BasicMatrixElementLeafInterface):
         """
         ket_angular_quantum_projection = f"m_{self.ket.angular_quantum_number}"
         bra_angular_quantum_projection = f"m_{self.bra.angular_quantum_number}"
-        return f"<{str(self.bra)[1:-1]}{bra_angular_quantum_projection}|{operator.to_expression_no_factor()}" \
-               f"{str(self.ket)[:-1]}" + f"{ket_angular_quantum_projection}>"
+        return (
+            f"<{str(self.bra)[1:-1]}{bra_angular_quantum_projection}|{operator.to_expression_no_factor()}"
+            f"{str(self.ket)[:-1]}" + f"{ket_angular_quantum_projection}>"
+        )
 
     def _basic_decouple(self, operator: TensorOperator) -> Optional[ReducedMatrixElementComposite]:
         """
@@ -380,12 +399,12 @@ class MatrixElement(BasicMatrixElementLeafInterface):
         :return: ReducedMatrixElementComposite or None
         """
         if not self.bra.substructure or not self.ket.substructure:
-            logging.info('There is nothing to decouple')
+            logging.info("There is nothing to decouple")
             return None
 
         tensor_a, tensor_b = operator.substructure
         if tensor_a.rank != tensor_b.rank:
-            raise RankMismatchError('[ERROR] Ranks of sub-operators must match')
+            raise RankMismatchError("[ERROR] Ranks of sub-operators must match")
 
         rank = tensor_a.rank
 
@@ -398,8 +417,13 @@ class MatrixElement(BasicMatrixElementLeafInterface):
         ket_j_a = ket_a.angular_quantum_number
         ket_j_b = ket_b.angular_quantum_number
 
-        factor = operator.factor * pow(-1, bra_j + bra_j_b + ket_j_a + rank) / jsc(rank) * KroneckerDelta(bra_j, ket_j)\
-                 * Symbolic6j(bra_j_a, bra_j_b, bra_j, ket_j_b, ket_j_a, rank)
+        factor = (
+            operator.factor
+            * pow(-1, bra_j + bra_j_b + ket_j_a + rank)
+            / jsc(rank)
+            * KroneckerDelta(bra_j, ket_j)
+            * Symbolic6j(bra_j_a, bra_j_b, bra_j, ket_j_b, ket_j_a, rank)
+        )
         reduced_matrix_element_a = ReducedMatrixElement(bra_a, ket_a, tensor_a)
         reduced_matrix_element_b = ReducedMatrixElement(bra_b, ket_b, tensor_b)
         return ReducedMatrixElementComposite(reduced_matrix_element_a, reduced_matrix_element_b, factor)
@@ -412,8 +436,12 @@ class ReducedMatrixElement(BasicMatrixElementLeafInterface):
     matrix elements. Reduced matrix elements can be calculated using the Wigner-Eckart theorem.
     """
 
-    def __init__(self, bra_state: StateInterface, ket_state: StateInterface,
-                 operator: Union[TensorOperator, TensorOperatorComposite]):
+    def __init__(
+        self,
+        bra_state: StateInterface,
+        ket_state: StateInterface,
+        operator: Union[TensorOperator, TensorOperatorComposite],
+    ):
         super().__init__(bra_state, ket_state, operator, factor=1, recouple=False)
         self._value = None
 
@@ -458,11 +486,13 @@ class ReducedMatrixElement(BasicMatrixElementLeafInterface):
                 bra_j_b = bra_b.angular_quantum_number
                 ket_j_a = ket_a.angular_quantum_number
                 ket_j_b = ket_b.angular_quantum_number
-                new_factor = jsc(bra_j, ket_j, rank) \
-                             * Symbolic9j(a, b, rank, bra_j_a, bra_j_b, bra_j, ket_j_a, ket_j_b, ket_j)
+                new_factor = jsc(bra_j, ket_j, rank) * Symbolic9j(
+                    a, b, rank, bra_j_a, bra_j_b, bra_j, ket_j_a, ket_j_b, ket_j
+                )
                 reduced_matrix_element_a = ReducedMatrixElement(bra_a, ket_a, tensor_a)
                 reduced_matrix_element_b = ReducedMatrixElement(bra_b, ket_b, tensor_b)
-                return ReducedMatrixElementComposite(reduced_matrix_element_a, reduced_matrix_element_b,
-                                                     new_factor * self.factor)
-        logging.info(f'Further decoupling not possible for reduced matrix element {self}')
+                return ReducedMatrixElementComposite(
+                    reduced_matrix_element_a, reduced_matrix_element_b, new_factor * self.factor
+                )
+        logging.info(f"Further decoupling not possible for reduced matrix element {self}")
         return None

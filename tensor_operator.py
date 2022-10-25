@@ -5,7 +5,7 @@ from copy import deepcopy
 
 from tensor_space import TensorSpace
 
-default_space = TensorSpace('DEFAULT', 99)
+default_space = TensorSpace("DEFAULT", 99)
 
 
 class TensorOperatorInterface(ABC):
@@ -181,8 +181,9 @@ class TensorOperatorComposite(TensorOperatorInterface):
         :return: A new TensorOperatorComposite
         """
         if isinstance(other, self.__class__):
-            args = [child.couple(other_child, rank, factor) for child in self.children for other_child in
-                    other.children]
+            args = [
+                child.couple(other_child, rank, factor) for child in self.children for other_child in other.children
+            ]
         else:
             args = [child.couple(other, rank, factor) for child in self.children]
 
@@ -220,8 +221,14 @@ class TensorOperator(TensorOperatorInterface):
     this class are the leafs.
     """
 
-    def __init__(self, rank, factor=1, space: TensorSpace = default_space, symbol: Union[None, str, list[str]] = None,
-                 substructure=None):
+    def __init__(
+        self,
+        rank,
+        factor=1,
+        space: TensorSpace = default_space,
+        symbol: Union[None, str, list[str]] = None,
+        substructure=None,
+    ):
         self._rank = rank
         self._factor = factor
         self._space = space
@@ -302,8 +309,9 @@ class TensorOperator(TensorOperatorInterface):
             sub_structure_depth = max([sub_tensor.get_depth() for sub_tensor in self.substructure]) + 1
             return sub_structure_depth
 
-    def add(self, other: Union[TensorOperator, TensorOperatorComposite]) \
-            -> Union[TensorOperator, TensorOperatorComposite, None]:
+    def add(
+        self, other: Union[TensorOperator, TensorOperatorComposite]
+    ) -> Union[TensorOperator, TensorOperatorComposite, None]:
         """
         Allows the addition of two tensor operators. If the tensor operators are identical up to the factor, return an
         updated instance of this object with the new factor, which is the sum of both factors. If this new factor is
@@ -337,8 +345,11 @@ class TensorOperator(TensorOperatorInterface):
 
         :return: String
         """
-        return str(self.symbol).replace("[", "{").replace("]", "}").replace(', ', ' x ').replace("'", "") \
-               + "_" + str(self.rank)
+        return (
+            str(self.symbol).replace("[", "{").replace("]", "}").replace(", ", " x ").replace("'", "")
+            + "_"
+            + str(self.rank)
+        )
 
     def couple(self, other: TensorOperatorInterface, rank, factor, order=True) -> Optional[TensorOperatorInterface]:
         """
@@ -422,8 +433,9 @@ class TensorOperator(TensorOperatorInterface):
             elif tensor_a.space == tensor_b.space:
                 if tensor_b.get_depth() > tensor_a.get_depth():  # depth
                     commute = True
-                elif tensor_b.get_depth() == tensor_a.get_depth() \
-                        and str(tensor_a.symbol) > str(tensor_b.symbol):  # alphabetically
+                elif tensor_b.get_depth() == tensor_a.get_depth() and str(tensor_a.symbol) > str(
+                    tensor_b.symbol
+                ):  # alphabetically
                     commute = True
 
             if commute:
