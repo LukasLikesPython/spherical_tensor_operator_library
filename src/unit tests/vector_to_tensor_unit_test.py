@@ -1,8 +1,8 @@
 import unittest
 
-from tensor_space import TensorSpace
-from tensor_transformation import TensorFromVectors
-from tensor_operator import TensorOperator
+from src.tensor_space import TensorSpace
+from src.tensor_transformation import TensorFromVectors
+from src.tensor_operator import TensorOperator
 from sympy import I, sqrt
 
 rel_space = TensorSpace("relative", 0)

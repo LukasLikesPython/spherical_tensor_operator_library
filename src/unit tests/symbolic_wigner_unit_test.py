@@ -1,7 +1,7 @@
 import unittest
 from sympy.physics.wigner import wigner_6j, wigner_9j
 from sympy import symbols
-from symbolic_wigner import Symbolic6j, Symbolic9j
+from src.symbolic_wigner import Symbolic6j, Symbolic9j
 from itertools import combinations
 
 J_MAX_VALUE = 2  # WARNING, the duration scales as (n + 1)**6 for the Six-J test and (n + 1)**9 for the Nine-J test.

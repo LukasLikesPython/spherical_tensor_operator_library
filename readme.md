@@ -1,23 +1,25 @@
-The code is published under the CC-BY-SA 4.0 License https://creativecommons.org/licenses/by-sa/4.0/.
-
-You are free to
-
-Share — copy and redistribute the material in any medium or format
-
-Adapt — remix, transform, and build upon the material for any purpose, even commercially.
-
-The licensor cannot revoke these freedoms as long as you follow the license terms.
+# spherical_tensor_operator_library
+A python package that can be used to simplify equations using 
+spherical tensor operators by automatically applying relations 
+from reference [A. Varshalovich, A. N. Moskalev, and V. K. Khersonskii, Quantum Theory of Angular
+Momentum. Singapore: World Scientific, 1988].
 
 
-Under the following terms:
+## Authors
 
-Attribution — You must give appropriate credit, provide a link to the license, and indicate if changes were made. You may do so in any reasonable manner, but not in any way that suggests the licensor endorses you or your use.
+- [Lukas Huth](https://github.com/LukasLikesPython)
 
-ShareAlike — If you remix, transform, or build upon the material, you must distribute your contributions under the same license as the original.
+## InstallationInstall my-project with pip
+```bash
+  pip install spherical_tensor_operator_library
+```
 
-No additional restrictions — You may not apply legal terms or technological measures that legally restrict others from doing anything the license permits.
+## Requirements
+
+* sympy
 
 
+## Legal
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,

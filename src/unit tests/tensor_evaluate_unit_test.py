@@ -1,11 +1,11 @@
 import unittest
 from sympy import Symbol
 
-from tensor_space import TensorSpace
-from tensor_transformation import TensorFromVectors
-from quantum_states import BasicState
-from tensor_operator import TensorOperator
-from tensor_evaluate import MatrixElement
+from src.tensor_space import TensorSpace
+from src.tensor_transformation import TensorFromVectors
+from src.quantum_states import BasicState
+from src.tensor_operator import TensorOperator
+from src.tensor_evaluate import MatrixElement
 
 # spaces
 rel_space = TensorSpace("rel", 0)

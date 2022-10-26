@@ -1,8 +1,8 @@
 import unittest
 from sympy import Symbol, symbols
 
-from tensor_space import TensorSpace
-from quantum_states import BasicState
+from src.tensor_space import TensorSpace
+from src.quantum_states import BasicState
 
 space_a = TensorSpace("space_a", 0)
 space_b = TensorSpace("space_b", 1)

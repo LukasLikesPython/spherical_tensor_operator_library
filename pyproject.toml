@@ -1,5 +1,8 @@
 [build-system]
-requires = ["setuptools>=61.0", "sympy>=1.10"]
+requires = [
+    "setuptools>=61.0",
+    "sympy>=1.10"
+]
 build-backend = "setuptools.build_meta"
 
 [project]
@@ -22,5 +25,5 @@ dependencies = [
 ]
 
 [project.urls]
-"Homepage" = "https://github.com/LukasLikesPython/SpericalTensorOperatorLibrary"
-"Bug Tracker" = "https://github.com/LukasLikesPython/SpericalTensorOperatorLibrary/issues"
+"Homepage" = "https://github.com/LukasLikesPython/spherical_tensor_operator_library"
+"Bug Tracker" = "https://github.com/LukasLikesPython/spherical_tensor_operator_library/issues"
