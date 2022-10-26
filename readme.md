@@ -17,6 +17,7 @@ Momentum. Singapore: World Scientific, 1988].
 ## Requirements
 
 * sympy
+* pytest
 
 
 ## Legal
