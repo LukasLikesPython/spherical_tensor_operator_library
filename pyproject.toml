@@ -5,7 +5,7 @@ requires = [
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "stol-LukasLikesPython"
+name = "stol"
 version = "0.0.1"
 authors = [
   {name="Lukas Huth"},

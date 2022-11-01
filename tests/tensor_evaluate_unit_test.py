@@ -2,7 +2,7 @@ import unittest
 from sympy import Symbol
 import sys
 
-sys.path.append('..')
+sys.path.append('../src/stol/')
 
 from tensor_space import TensorSpace
 from tensor_transformation import TensorFromVectors
