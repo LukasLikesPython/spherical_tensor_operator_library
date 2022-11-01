@@ -1,4 +1,8 @@
 import unittest
+import sys
+
+sys.path.append('..')
+
 from tensor_space import TensorSpace, DuplicateSpaceError
 
 

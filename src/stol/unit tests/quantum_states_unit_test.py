@@ -1,5 +1,8 @@
 import unittest
 from sympy import Symbol, symbols
+import sys
+
+sys.path.append('..')
 
 from tensor_space import TensorSpace
 from quantum_states import BasicState

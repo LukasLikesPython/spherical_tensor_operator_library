@@ -1,8 +1,12 @@
 import unittest
 from sympy.physics.wigner import wigner_6j, wigner_9j
 from sympy import symbols
-from symbolic_wigner import Symbolic6j, Symbolic9j
 from itertools import combinations
+import sys
+
+sys.path.append('..')
+
+from symbolic_wigner import Symbolic6j, Symbolic9j
 
 J_MAX_VALUE = 2  # WARNING, the duration scales as (n + 1)**6 for the Six-J test and (n + 1)**9 for the Nine-J test.
 J_MAX_VALUE_COMBINATION = 1  # WARNING, the duration scales as (n + 1)**15
@@ -43,16 +47,16 @@ class TestSymbolicWigner(unittest.TestCase):
         combs = sorted(list(set(combinations(j_range * symbol_int, symbol_int))))
         for j1, j2, j3, j4, j5, j6, j7, j8, j9, j10, j11, j12, j13, j14, j15 in combs:
             if (
-                not (abs(j1 - j2) <= j3 <= j1 + j2)
-                or not (abs(j4 - j5) <= j6 <= j4 + j5)
-                or not (abs(j7 - j8) <= j9 <= j7 + j8)
-                or not (abs(j1 - j4) <= j7 <= j1 + j4)
-                or not (abs(j2 - j5) <= j8 <= j2 + j5)
-                or not (abs(j3 - j6) <= j9 <= j3 + j6)
-                or not (abs(j11 - j12) <= j10 <= j11 + j12)
-                or not (abs(j14 - j15) <= j10 <= j14 + j15)
-                or not (abs(j11 - j15) <= j13 <= j11 + j15)
-                or not (abs(j12 - j14) <= j13 <= j12 + j14)
+                    not (abs(j1 - j2) <= j3 <= j1 + j2)
+                    or not (abs(j4 - j5) <= j6 <= j4 + j5)
+                    or not (abs(j7 - j8) <= j9 <= j7 + j8)
+                    or not (abs(j1 - j4) <= j7 <= j1 + j4)
+                    or not (abs(j2 - j5) <= j8 <= j2 + j5)
+                    or not (abs(j3 - j6) <= j9 <= j3 + j6)
+                    or not (abs(j11 - j12) <= j10 <= j11 + j12)
+                    or not (abs(j14 - j15) <= j10 <= j14 + j15)
+                    or not (abs(j11 - j15) <= j13 <= j11 + j15)
+                    or not (abs(j12 - j14) <= j13 <= j12 + j14)
             ):
                 continue  # Symmetries state those elements are zero. We tested the whole set already above.
             symbolic_comb = symb.evaluate(
@@ -99,10 +103,10 @@ class TestSymbolicWigner(unittest.TestCase):
                 )
             )
             wigner_comb = (
-                wigner_6j(j1, j2, j3, j4, j5, j6)
-                * wigner_6j(j7, j8, j9, j10, j11, j12)
-                * wigner_6j(j13, j14, j15, j16, j17, j18)
-                * 2
+                    wigner_6j(j1, j2, j3, j4, j5, j6)
+                    * wigner_6j(j7, j8, j9, j10, j11, j12)
+                    * wigner_6j(j13, j14, j15, j16, j17, j18)
+                    * 2
             )
             self.assertEqual(wigner_comb, symbolic_comb)
 

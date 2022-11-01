@@ -1,4 +1,8 @@
 import unittest
+import sys
+
+sys.path.append('..')
+
 from tensor_operator import TensorOperator
 from tensor_algebra import TensorAlgebra
 from tensor_transformation import TensorFromVectors
@@ -11,7 +15,6 @@ cm_space = TensorSpace("cm", 2)
 
 
 class TestTensorAlgebra(unittest.TestCase):
-
     q = TensorOperator(rank=1, symbol="q", space=rel_space)
     k = TensorOperator(rank=1, symbol="k", space=rel_space)
     P = TensorOperator(rank=1, symbol="P", space=cm_space)
