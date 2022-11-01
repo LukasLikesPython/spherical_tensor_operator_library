@@ -1,26 +1,25 @@
 [build-system]
 requires = [
     "setuptools>=61.0",
-    "sympy>=1.10"
 ]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "spherical_tensor_operator_library"
+name = "stol"
 version = "1.0.0"
 authors = [
-  { name="Lukas Huth", email="" },
+  {name="Lukas Huth"},
 ]
-description = "A library that is capable to simplify expressions using spherical tensor operators"
+description = "STOL - Sperical Tensor Operator Library: A library that is capable to simplify expressions using spherical tensor operators"
 readme = "README.md"
-requires-python = ">=3.10"
+requires-python = ">=3.9"
 classifiers = [
     "Programming Language :: Python :: 3",
     "License :: CC-BY-SA 4.0",
-    "Operating System :: OS Independent",
+    "operating system :: OS Independent",
 ]
 dependencies = [
-    "sympy>=1.10",
+    "sympy>=1.7",
     "pytest",
 ]
 

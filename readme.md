@@ -1,4 +1,4 @@
-# spherical_tensor_operator_library
+# stol - spherical_tensor_operator_library
 A python package that can be used to simplify equations using 
 spherical tensor operators by automatically applying relations 
 from reference [A. Varshalovich, A. N. Moskalev, and V. K. Khersonskii, Quantum Theory of Angular

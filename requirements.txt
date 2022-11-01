@@ -1,2 +1,0 @@
-##### Requirements #####
-sympy >= 1.10, < 2.0
