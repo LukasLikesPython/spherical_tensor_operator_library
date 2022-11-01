@@ -1,5 +1,5 @@
 import unittest
-from src.tensor_space import TensorSpace, DuplicateSpaceError
+from tensor_space import TensorSpace, DuplicateSpaceError
 
 
 class TestTensorSpace(unittest.TestCase):

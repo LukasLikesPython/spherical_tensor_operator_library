@@ -1,9 +1,9 @@
 import unittest
-from src.tensor_operator import TensorOperator
-from src.tensor_algebra import TensorAlgebra
-from src.tensor_transformation import TensorFromVectors
+from tensor_operator import TensorOperator
+from tensor_algebra import TensorAlgebra
+from tensor_transformation import TensorFromVectors
 from sympy import I
-from src.tensor_space import TensorSpace
+from tensor_space import TensorSpace
 
 rel_space = TensorSpace("relative", 0)
 spin_space = TensorSpace("spin", 1)
