@@ -53,9 +53,83 @@ As you can see, we need to provide a rank (here rank=1 since all operators are v
 We can print the operator
 ```python
 print(tensor_op)
->>>
+```
+```
+3 * {{q_1 x sig1_1}_0 x {q_1 x sig2_1}_0}_0
 ```
 
+If we are only interested in the tensor operator itself, we can use the tensor_algebra package to simplify the expression
+```python
+# optional
+from stolpy.tensor_algebra import TensorAlgebra
+
+decoupled_op = TensorAlgebra.recouple(tensor_op)
+print(decoupled_op)
+```
+```
+1 * {{q_1 x q_1}_0 x {sig1_1 x sig2_1}_0}_0 + sqrt(5) * {{q_1 x q_1}_2 x {sig1_1 x sig2_1}_2}_0
+```
+As one can see, the decoupled operator's sub-tensors are reordered according to the space in which they act.
+
+Another possibility is to create the matrix elements for this operator. For this we have to define the states first
+```python
+from stolpy.quantum_states import BasicState
+
+s = BasicState(Symbol("s"), spin_space)
+l = BasicState(Symbol("l"), rel_space, Symbol("p"))
+ket = l.couple(s, Symbol("j"))
+sp = BasicState(Symbol("s'"), spin_space)
+lp = BasicState(Symbol("l'"), rel_space, Symbol("p'"))
+bra = lp.couple(sp, Symbol("j'"))
+```
+Here, s = spin, l = orbital angular momentum, and j = total angular momentum.
+
+We can now define the matrix element
+```python
+from stolpy.tensor_evaluate import MatrixElement
+
+me = MatrixElement(bra, ket, tensor_op)
+print(me)
+```
+```
+<p'j'(l's')m_j'|{{q_1 x q_1}_0 x {sig1_1 x sig2_1}_0}_0|pj(ls)m_j> + sqrt(5) * <p'j'(l's')m_j'|{{q_1 x q_1}_2 x {sig1_1 x sig2_1}_2}_0|pj(ls)m_j>
+```
+As one can see, the simplification is done automatically during the construction of the matrix element. We can now
+break down the states and operators by using the full_decouple method of the MatrixElement class.
+```python
+decoupled_me = me.full_decouple()
+print(decoupled_me)
+```
+```
+(-1)**(j' + l + s')*KroneckerDelta(j, j') * SixJ(l' s' j'; s l 0) * <p'l'||{q_1 x q_1}_0||pl><s'||{sig1_1 x sig2_1}_0||s> + (-1)**(j' + l + s' + 2)*KroneckerDelta(j, j') * SixJ(l' s' j'; s l 2) * <p'l'||{q_1 x q_1}_2||pl><s'||{sig1_1 x sig2_1}_2||s>
+```
+This breaks down the equation to factors and reduced matrix elements. Apply the Wigner-Eckart Theorem (WET) to calculate the reduced matrix elements manually. One has to do this once and can use the result independent of any projections. 
+
+While this already provides a general expression, one can go one step further and evaluate the expression (up to reduced matrix elements). In order to do so, we need to define a dictionary that contains the symbols in the equation and the values for which you want to substitute them.
+```python
+subsdict = {
+    Symbol("l"): 1,
+    Symbol("l'"): 1,
+    Symbol("s"): 1,
+    Symbol("s'"): 1,
+    Symbol("j"): 2,
+    Symbol("j'"): 2,
+}
+result = me.evaluate(subsdict)
+print(result)
+```
+```
+<1||{sig1_1 x sig2_1}_0||1>*<p'1||{q_1 x q_1}_0||p1>/3 + <1||{sig1_1 x sig2_1}_2||1>*<p'1||{q_1 x q_1}_2||p1>/30
+```
+The only thing left to do is to evaluate the reduced matrix elements using the WET. That's it. 
+
+## Message from the author
+I hope this helps your research. Let me know about any bugs on https://github.com/LukasLikesPython/spherical_tensor_operator_library/issues. 
+I am also happy about any kind of feedback. Feel free to add to this if you need additional functions. 
+
+Cheers
+
+Lukas
 
 ## Legal
 
