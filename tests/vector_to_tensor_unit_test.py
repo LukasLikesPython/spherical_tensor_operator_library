@@ -2,7 +2,7 @@ import unittest
 from sympy import I, sqrt
 import sys
 
-sys.path.append('../src/stol/')
+sys.path.append('../stol/')
 
 from tensor_space import TensorSpace
 from tensor_transformation import TensorFromVectors

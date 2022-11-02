@@ -1,7 +1,7 @@
 import unittest
 import sys
 
-sys.path.append('../src/stol/')
+sys.path.append('../stol/')
 
 from tensor_operator import TensorOperator
 from tensor_algebra import TensorAlgebra

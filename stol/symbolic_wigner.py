@@ -2,7 +2,6 @@ from __future__ import annotations
 import copy
 from abc import ABC, abstractmethod
 from typing import Union
-
 from sympy.physics.wigner import wigner_6j, wigner_9j
 from sympy import Symbol
 

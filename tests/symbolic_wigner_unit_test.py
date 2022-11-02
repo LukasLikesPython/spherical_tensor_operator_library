@@ -4,7 +4,7 @@ from sympy import symbols
 from itertools import combinations
 import sys
 
-sys.path.append('../src/stol/')
+sys.path.append('../stol/')
 
 from symbolic_wigner import Symbolic6j, Symbolic9j
 
