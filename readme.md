@@ -19,7 +19,8 @@ Install my-project with pip
 
 ## Requirements
 
-* sympy
+* python>=3.9
+* sympy>=1.7
 
 
 ## Usage Example
