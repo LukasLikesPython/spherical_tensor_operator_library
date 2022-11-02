@@ -2,7 +2,7 @@ from __future__ import annotations
 from typing import Optional
 from sympy import sqrt, I
 
-from tensor_operator import TensorOperator
+from stolpy.tensor_operator import TensorOperator
 
 
 class WrongOperatorTypeError(Exception):

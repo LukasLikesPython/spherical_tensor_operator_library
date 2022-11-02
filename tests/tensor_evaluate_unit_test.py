@@ -2,13 +2,13 @@ import unittest
 from sympy import Symbol
 import sys
 
-sys.path.append('../src/stolpy/')
+sys.path.append('../src/')
 
-from tensor_space import TensorSpace
-from tensor_transformation import TensorFromVectors
-from quantum_states import BasicState
-from tensor_operator import TensorOperator
-from tensor_evaluate import MatrixElement
+from stolpy.tensor_space import TensorSpace
+from stolpy.tensor_transformation import TensorFromVectors
+from stolpy.quantum_states import BasicState
+from stolpy.tensor_operator import TensorOperator
+from stolpy.tensor_evaluate import MatrixElement
 
 # spaces
 rel_space = TensorSpace("rel", 0)

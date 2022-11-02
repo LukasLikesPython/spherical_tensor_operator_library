@@ -2,10 +2,10 @@ import unittest
 from sympy import Symbol, symbols
 import sys
 
-sys.path.append('../src/stolpy/')
+sys.path.append('../src/')
 
-from tensor_space import TensorSpace
-from quantum_states import BasicState
+from stolpy.tensor_space import TensorSpace
+from stolpy.quantum_states import BasicState
 
 space_a = TensorSpace("space_a", 0)
 space_b = TensorSpace("space_b", 1)

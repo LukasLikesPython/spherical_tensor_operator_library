@@ -1,13 +1,13 @@
 import unittest
+from sympy import I
 import sys
 
-sys.path.append('../src/stolpy/')
+sys.path.append('../src/')
 
-from tensor_operator import TensorOperator
-from tensor_algebra import TensorAlgebra
-from tensor_transformation import TensorFromVectors
-from sympy import I
-from tensor_space import TensorSpace
+from stolpy.tensor_operator import TensorOperator
+from stolpy.tensor_algebra import TensorAlgebra
+from stolpy.tensor_transformation import TensorFromVectors
+from stolpy.tensor_space import TensorSpace
 
 rel_space = TensorSpace("relative", 0)
 spin_space = TensorSpace("spin", 1)

@@ -2,11 +2,11 @@ import unittest
 from sympy import I, sqrt
 import sys
 
-sys.path.append('../src/stolpy/')
+sys.path.append('../src/')
 
-from tensor_space import TensorSpace
-from tensor_transformation import TensorFromVectors
-from tensor_operator import TensorOperator
+from stolpy.tensor_space import TensorSpace
+from stolpy.tensor_transformation import TensorFromVectors
+from stolpy.tensor_operator import TensorOperator
 
 
 rel_space = TensorSpace("relative", 0)

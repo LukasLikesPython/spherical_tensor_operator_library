@@ -4,9 +4,9 @@ from sympy import symbols
 from itertools import combinations
 import sys
 
-sys.path.append('../src/stolpy/')
+sys.path.append('../src/')
 
-from symbolic_wigner import Symbolic6j, Symbolic9j
+from stolpy.symbolic_wigner import Symbolic6j, Symbolic9j
 
 J_MAX_VALUE = 2  # WARNING, the duration scales as (n + 1)**6 for the Six-J test and (n + 1)**9 for the Nine-J test.
 J_MAX_VALUE_COMBINATION = 1  # WARNING, the duration scales as (n + 1)**15

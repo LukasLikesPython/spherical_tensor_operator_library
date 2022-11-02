@@ -1,10 +1,10 @@
 import unittest
 import sys
 
-sys.path.append('../src/stolpy/')
+sys.path.append('../src/')
 
-from tensor_operator import TensorOperator
-from tensor_space import TensorSpace
+from stolpy.tensor_operator import TensorOperator
+from stolpy.tensor_space import TensorSpace
 
 prior_spin_space = TensorSpace("prior_spin", -1)
 rel_space = TensorSpace("relative", 0)

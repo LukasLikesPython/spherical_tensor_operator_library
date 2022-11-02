@@ -5,11 +5,11 @@ from abc import ABC, abstractmethod
 import copy
 import logging
 
-from tensor_algebra import jsc
-from quantum_states import StateInterface
-from tensor_algebra import TensorAlgebra
-from tensor_operator import TensorOperator, TensorOperatorComposite, TensorOperatorInterface
-from symbolic_wigner import Symbolic6j, Symbolic9j, SymbolicWigner, factor_eval
+from stolpy.tensor_algebra import jsc
+from stolpy.quantum_states import StateInterface
+from stolpy.tensor_algebra import TensorAlgebra
+from stolpy.tensor_operator import TensorOperator, TensorOperatorComposite, TensorOperatorInterface
+from stolpy.symbolic_wigner import Symbolic6j, Symbolic9j, SymbolicWigner, factor_eval
 
 logging.basicConfig(level=logging.WARNING)
 

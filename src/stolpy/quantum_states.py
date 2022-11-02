@@ -3,7 +3,7 @@ from abc import ABC, abstractmethod
 from sympy import Symbol
 from typing import Optional, List
 
-from tensor_space import TensorSpace
+from stolpy.tensor_space import TensorSpace
 
 
 class StateInterface(ABC):

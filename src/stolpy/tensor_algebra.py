@@ -5,7 +5,7 @@ from sympy import sqrt
 from math import prod
 import logging
 
-from tensor_operator import TensorOperator, TensorOperatorComposite
+from stolpy.tensor_operator import TensorOperator, TensorOperatorComposite
 
 logging.basicConfig(level=logging.WARNING)
 

@@ -1,9 +1,9 @@
 import unittest
 import sys
 
-sys.path.append('../src/stolpy/')
+sys.path.append('../src/')
 
-from tensor_space import TensorSpace, DuplicateSpaceError
+from stolpy.tensor_space import TensorSpace, DuplicateSpaceError
 
 
 class TestTensorSpace(unittest.TestCase):

@@ -4,12 +4,15 @@ spherical tensor operators by automatically applying relations
 from reference [A. Varshalovich, A. N. Moskalev, and V. K. Khersonskii, Quantum Theory of Angular
 Momentum. Singapore: World Scientific, 1988].
 
+This project is part of my master thesis at the UoO. I will add the notes after handing in my thesis.
+
 
 ## Authors
 
 - [Lukas Huth](https://github.com/LukasLikesPython)
 
-## InstallationInstall my-project with pip
+## Installation
+Install my-project with pip
 ```bash
   pip install stolpy
 ```
@@ -19,9 +22,52 @@ Momentum. Singapore: World Scientific, 1988].
 * sympy
 
 
+## Usage Example
+The example is for two-body contact operators from chiral EFT (nuclear physics).
+
+First define the spaces for the operators and states
+```python
+from stolpy.tensor_space import TensorSpace
+
+rel_space = TensorSpace('rel', 0)
+spin_space = TensorSpace('spin', 1)
+```
+Define all spaces you need and order them in the way you want the operators ordered.
+Do not use the same name for a space twice.
+
+Next we initialize our operators. We use their vector representation and the code will transform them into tensor operators.
+For this example, we use the tensor operator in q (C6) at NLO (next to leading order).
+```python
+from stolpy.tensor_transformation import TensorFromVectors
+from stolpy.tensor_operator import TensorOperator
+from sympy import Symbol
+
+q = TensorOperator(rank=1, symbol=Symbol("q"), space=rel_space)
+sig1 = TensorOperator(rank=1, symbol=Symbol("sig1"), space=spin_space)
+sig2 = TensorOperator(rank=1, symbol=Symbol("sig2"), space=spin_space)
+tensor_op = TensorFromVectors.scalar_product(q, sig1).\
+                couple(TensorFromVectors.scalar_product(q, sig2), 0, 1)
+```
+As you can see, we need to provide a rank (here rank=1 since all operators are vectors), a symbol (use Sympy.Symbol, however a string will also work), and the space (see above).
+
+We can print the operator
+```python
+print(tensor_op)
+>>>
+```
+
+
 ## Legal
 
- GNU GENERAL PUBLIC LICENSE
+ GNU GENERAL PUBLIC LICENSEfrom stolpy.tensor_transformation import TensorFromVectors
+from stolpy.tensor_operator import TensorOperator
+from sympy import Symbol
+
+q = TensorOperator(rank=1, symbol=Symbol("q"), space=rel_space)
+sig1 = TensorOperator(rank=1, symbol=Symbol("sig1"), space=spin_space)
+sig2 = TensorOperator(rank=1, symbol=Symbol("sig2"), space=spin_space)
+tensor_op = TensorFromVectors.scalar_product(q, sig1).\
+                couple(TensorFromVectors.scalar_product(q, sig2), 0, 1)
                        Version 3, 29 June 2007
 
  Copyright (C) 2007 Free Software Foundation, Inc. <https://fsf.org/>
