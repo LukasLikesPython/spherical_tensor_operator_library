@@ -1,9 +1,6 @@
 from __future__ import annotations
 from typing import Optional
 from sympy import sqrt, I
-import sys
-
-sys.path.append('stol/')
 
 from tensor_operator import TensorOperator
 

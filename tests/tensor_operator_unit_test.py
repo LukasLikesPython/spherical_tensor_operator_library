@@ -1,7 +1,7 @@
 import unittest
 import sys
 
-sys.path.append('../stol/')
+sys.path.append('../src/stolpy/')
 
 from tensor_operator import TensorOperator
 from tensor_space import TensorSpace

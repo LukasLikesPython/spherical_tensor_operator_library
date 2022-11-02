@@ -2,9 +2,6 @@ from __future__ import annotations
 from abc import ABC, abstractmethod
 from typing import Union, Optional
 from copy import deepcopy
-import sys
-
-sys.path.append('stol/')
 
 from tensor_space import TensorSpace
 

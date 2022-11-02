@@ -5,17 +5,17 @@ requires = [
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "stol"
+name = "stolpy"
 version = "0.0.1"
 authors = [
   {name="Lukas Huth"},
 ]
-description = "STOL - Sperical Tensor Operator Library: A library that is capable to simplify expressions using spherical tensor operators"
+description = "stolpy - Sperical Tensor Operator Library for PYthon: A library that is capable to simplify expressions using spherical tensor operators"
 readme = "README.md"
 requires-python = ">=3.9"
 classifiers = [
     "Programming Language :: Python :: 3",
-    "License :: CC-BY-SA 4.0",
+    "License :: GNU GPLv3",
     "operating system :: OS Independent",
 ]
 dependencies = [

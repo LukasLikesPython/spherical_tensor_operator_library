@@ -1,7 +1,3 @@
-import sys
-
-sys.path.append('stol/')
-
 from tensor_space import *
 from quantum_states import *
 from symbolic_wigner import *

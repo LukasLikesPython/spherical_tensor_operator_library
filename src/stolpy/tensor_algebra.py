@@ -4,9 +4,6 @@ from sympy.physics.wigner import wigner_6j, wigner_9j
 from sympy import sqrt
 from math import prod
 import logging
-import sys
-
-sys.path.append('stol/')
 
 from tensor_operator import TensorOperator, TensorOperatorComposite
 

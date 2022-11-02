@@ -2,9 +2,6 @@ from __future__ import annotations
 from abc import ABC, abstractmethod
 from sympy import Symbol
 from typing import Optional, List
-import sys
-
-sys.path.append('stol/')
 
 from tensor_space import TensorSpace
 

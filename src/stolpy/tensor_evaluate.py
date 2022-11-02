@@ -4,9 +4,6 @@ from typing import Union, Optional, List
 from abc import ABC, abstractmethod
 import copy
 import logging
-import sys
-
-sys.path.append('stol/')
 
 from tensor_algebra import jsc
 from quantum_states import StateInterface
