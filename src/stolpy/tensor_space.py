@@ -27,7 +27,10 @@ class SpaceIterator(Iterator):
     6. 3
     """
 
-    def __init__(self, space: TensorSpace):
+    def __init__(
+        self,
+        space: TensorSpace,
+    ):
         """
         Construct a _collection over which we will iterate later on.
         :param space: TensorSpace
@@ -53,7 +56,10 @@ class SpaceIterator(Iterator):
                     element_list = element_list[:-index]
                 element_list[-1] = 1
 
-    def _get_substructure(self, element_list: list[int]) -> Optional[TensorSpace]:
+    def _get_substructure(
+        self,
+        element_list: list[int],
+    ) -> Optional[TensorSpace]:
         """
         Auxiliary function for the iterator initialization.
         The idea is to loop through all subspaces of the space to construct the _collection list, which is later used
@@ -70,7 +76,9 @@ class SpaceIterator(Iterator):
         else:
             return None
 
-    def __next__(self) -> TensorSpace:
+    def __next__(
+        self,
+    ) -> TensorSpace:
         """
         Proceed to the next element.
 
@@ -83,7 +91,9 @@ class SpaceIterator(Iterator):
             raise StopIteration()
         return value
 
-    def get_next(self) -> Optional[TensorSpace]:
+    def get_next(
+        self,
+    ) -> Optional[TensorSpace]:
         """
         Same as the __next__ function but without raising an exception.
 
@@ -105,7 +115,12 @@ class TensorSpace(Iterable):
 
     space_dict = {}  # Keep track which spaces already exist.
 
-    def __init__(self, name: str, order: int, substructure: Optional[List[TensorSpace]] = None):
+    def __init__(
+        self,
+        name: str,
+        order: int,
+        substructure: Optional[List[TensorSpace]] = None,
+    ):
         self._name = name
         self._order = order
         self._substructure = substructure
@@ -118,28 +133,43 @@ class TensorSpace(Iterable):
                 raise DuplicateSpaceError(f'A space with the name "{name}" and different properties already exists.')
 
     @property
-    def name(self):
+    def name(
+        self,
+    ):
         return self._name
 
     @property
-    def pure_space(self):
+    def pure_space(
+        self,
+    ):
         return self._pure_space
 
     @property
-    def order(self):
+    def order(
+        self,
+    ):
         return self._order
 
     @property
-    def substructure(self):
+    def substructure(
+        self,
+    ):
         return self._substructure
 
-    def __str__(self) -> str:
+    def __str__(
+        self,
+    ) -> str:
         return f"{self.name}-space: order = {self.order}"
 
-    def __repr__(self) -> str:
+    def __repr__(
+        self,
+    ) -> str:
         return self.__str__()
 
-    def __add__(self, other: TensorSpace) -> TensorSpace:
+    def __add__(
+        self,
+        other: TensorSpace,
+    ) -> TensorSpace:
         """
         Combine two spaces, if they are identical, return the space. Else, construct a new space, which contains the
         two spaces as a substructure
@@ -154,7 +184,10 @@ class TensorSpace(Iterable):
             new_order = min(self.order, other.order)
             return self.__class__(new_name, new_order, substructure=[self, other])
 
-    def __eq__(self, other: TensorSpace) -> bool:
+    def __eq__(
+        self,
+        other: TensorSpace,
+    ) -> bool:
         """
         TensorSpaces cannot share a name if they have different properties. For equality, it is enough to check the name
 
@@ -166,7 +199,10 @@ class TensorSpace(Iterable):
         else:
             return False
 
-    def __gt__(self, other: TensorSpace):
+    def __gt__(
+        self,
+        other: TensorSpace,
+    ):
         """
         Order spaces according to their definition. The order is the first criteria. If there are coupled spaces, we
         further prefer shallower space to deep spaces. If those are the same we iterate through the spaces and repeat
@@ -199,26 +235,42 @@ class TensorSpace(Iterable):
                 return True  # Objects with substructure have higher rank by choice
         return False
 
-    def __ge__(self, other: TensorSpace):
+    def __ge__(
+        self,
+        other: TensorSpace,
+    ):
         if self == other:
             return True
         elif self > other:
             return True
         return False
 
-    def __lt__(self, other: TensorSpace):
+    def __lt__(
+        self,
+        other: TensorSpace,
+    ):
         return not self >= other
 
-    def __le__(self, other: TensorSpace):
+    def __le__(
+        self,
+        other: TensorSpace,
+    ):
         return not self > other
 
-    def __ne__(self, other: TensorSpace):
+    def __ne__(
+        self,
+        other: TensorSpace,
+    ):
         return not self == other
 
-    def __iter__(self) -> SpaceIterator:
+    def __iter__(
+        self,
+    ) -> SpaceIterator:
         return SpaceIterator(self)
 
-    def get_depth(self) -> int:
+    def get_depth(
+        self,
+    ) -> int:
         """
         Get the depth of the TensorSpace, by going recursively through the substructure.
 
@@ -230,7 +282,10 @@ class TensorSpace(Iterable):
             sub_structure_depth = max([sub_tensor.get_depth() for sub_tensor in self.substructure]) + 1
             return sub_structure_depth
 
-    def contains(self, other: TensorSpace) -> bool:
+    def contains(
+        self,
+        other: TensorSpace,
+    ) -> bool:
         """
         Used to check if this TensorSpace contains the other space within it.
 
@@ -246,7 +301,9 @@ class TensorSpace(Iterable):
                 return True
         return False
 
-    def get_flat_basic_states(self) -> list[TensorSpace]:
+    def get_flat_basic_states(
+        self,
+    ) -> list[TensorSpace]:
         """
         Finds all basic TensorSpace objects (i.e., those without a substructure) and returns them as a list.
         :return: list of basic states

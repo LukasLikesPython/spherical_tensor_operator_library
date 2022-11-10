@@ -12,7 +12,7 @@ authors = [
 ]
 description = "stolpy - Sperical Tensor Operator Library for PYthon: A library that is capable to simplify expressions using spherical tensor operators"
 readme = "README.md"
-requires-python = ">=3.9"
+requires-python = ">=3.6"
 classifiers = [
     "Programming Language :: Python :: 3",
     "License :: GNU GPLv3",

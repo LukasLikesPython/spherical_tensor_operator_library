@@ -25,13 +25,17 @@ class StateInterface(ABC):
         self._substructure = substructure
         self._space = space
 
-    def __str__(self):
+    def __str__(
+        self,
+    ):
         if self.other_quantum_number:
             return f"|{self.other_quantum_number}{self.representation()}>"
         else:
             return f"|{self.representation()}>"
 
-    def __repr__(self):
+    def __repr__(
+        self,
+    ):
         return self.__str__()
 
     def __eq__(self, other: StateInterface) -> bool:
@@ -44,27 +48,39 @@ class StateInterface(ABC):
             return True
 
     @property
-    def angular_quantum_number(self):
+    def angular_quantum_number(
+        self,
+    ):
         return self._angular_quantum_number
 
     @property
-    def other_quantum_number(self):
+    def other_quantum_number(
+        self,
+    ):
         return self._other_quantum_number
 
     @property
-    def substructure(self):
+    def substructure(
+        self,
+    ):
         return self._substructure
 
     @property
-    def factor(self):
+    def factor(
+        self,
+    ):
         return self._factor
 
     @property
-    def space(self):
+    def space(
+        self,
+    ):
         return self._space
 
     @abstractmethod
-    def representation(self) -> str:
+    def representation(
+        self,
+    ) -> str:
         """
         Provide a string representation of each subclass. The representation is used in the __str__ function and can be
         appended for coupled states.
@@ -73,7 +89,10 @@ class StateInterface(ABC):
         pass
 
     @abstractmethod
-    def evaluate(self, symbolic_replace_dict: dict) -> str:
+    def evaluate(
+        self,
+        symbolic_replace_dict: dict,
+    ) -> str:
         """
         Evaluate all or some of the symbolic constituents of the state and return a string representation of it.
         :param symbolic_replace_dict: A dictionary that contains symbols and their replacement value as key-value pairs.
@@ -81,7 +100,11 @@ class StateInterface(ABC):
         """
         pass
 
-    def couple(self, other: StateInterface, new_quantum_number: Symbol) -> CoupledState:
+    def couple(
+        self,
+        other: StateInterface,
+        new_quantum_number: Symbol,
+    ) -> CoupledState:
         """
         Couple another state to this state to form a new CoupledState object. During the coupling process, the states'
         constituents are ordered according to the order of their space object.
@@ -130,13 +153,18 @@ class CoupledState(StateInterface):
     ):
         super().__init__(angular_quantum_number, space, other_quantum_number, factor, substructure)
 
-    def representation(self) -> str:
+    def representation(
+        self,
+    ) -> str:
         return (
             f"{self.angular_quantum_number}"
             f"({self.substructure[0].representation()}{self.substructure[1].representation()})"
         )
 
-    def evaluate(self, symbolic_replace_dict: dict) -> str:
+    def evaluate(
+        self,
+        symbolic_replace_dict: dict,
+    ) -> str:
         """
         A coupled state j has consists of two substates j1 and j2. The representation reads |j(j1j2)> if the substates
         are basic states or |j(j1(j1aj1b(...))j2(...)> if the substates are combined states as well. The substates are
@@ -166,10 +194,15 @@ class BasicState(StateInterface):
     ):
         super().__init__(angular_quantum_number, space, other_quantum_number, factor, substructure=None)
 
-    def representation(self) -> str:
+    def representation(
+        self,
+    ) -> str:
         return f"{self.angular_quantum_number}"
 
-    def evaluate(self, symbolic_replace_dict: dict) -> str:
+    def evaluate(
+        self,
+        symbolic_replace_dict: dict,
+    ) -> str:
         """
         Replace all or some of the symbolic constituents by values according to the symbolic_replace_dict dictionary.
         :param symbolic_replace_dict: A dictionary that contains symbols and their replacement value as key-value pairs.

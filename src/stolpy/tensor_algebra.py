@@ -10,7 +10,9 @@ from stolpy.tensor_operator import TensorOperator, TensorOperatorComposite
 logging.basicConfig(level=logging.WARNING)
 
 
-def jsc(*args):
+def jsc(
+    *args,
+):
     """
     Auxiliary function for a reappearing element during recoupling actions [j], where [j] = sqrt(2 * j + 1)
 
@@ -30,7 +32,9 @@ class TensorAlgebra(object):
     """
 
     @staticmethod
-    def _can_be_recoupled_ABxAB_AAxBB(tensor_op: TensorOperator) -> bool:
+    def _can_be_recoupled_ABxAB_AAxBB(
+        tensor_op: TensorOperator,
+    ) -> bool:
         """
         Checks the subspaces of this operator. If the operator subspace structure returns two mixed states, with space
         one = A and space two = B coupled like (AxB) x (AxB) we can recouple it to (AxA) x (BxB) and the function
@@ -51,7 +55,9 @@ class TensorAlgebra(object):
         return False
 
     @staticmethod
-    def _can_be_recoupled_AAxAB_AAAxB(tensor_op: TensorOperator) -> bool:
+    def _can_be_recoupled_AAxAB_AAAxB(
+        tensor_op: TensorOperator,
+    ) -> bool:
         """
         Checks the subspaces of this operator. If the operator subspace structure returns two mixed states, with space
         one = A and space two = B coupled like (AxA) x (AxB) we can recouple it to ((AxA) x A) x B and the function
@@ -76,7 +82,9 @@ class TensorAlgebra(object):
         return False
 
     @staticmethod
-    def _can_be_recoupled_ABxC_ACxB(tensor_op: TensorOperator) -> bool:
+    def _can_be_recoupled_ABxC_ACxB(
+        tensor_op: TensorOperator,
+    ) -> bool:
         """
         Checks the subspaces of this operator. If the operator subspace structure returns one mixed state and one pure
         state, with space one = AxB and space two = C coupled like (AxB) x C we can recouple it to (AxC) x B given that
@@ -102,7 +110,9 @@ class TensorAlgebra(object):
         return False
 
     @staticmethod
-    def _can_be_recoupled_ABxC_AxBC(tensor_op: TensorOperator) -> bool:
+    def _can_be_recoupled_ABxC_AxBC(
+        tensor_op: TensorOperator,
+    ) -> bool:
         """
         Checks the subspaces of this operator. If the operator subspace structure returns one mixed state and one pure
         state, with space one = AxB and space two = C coupled like (AxB) x C we can recouple it to A x (BxC) given that
@@ -126,7 +136,9 @@ class TensorAlgebra(object):
         return False
 
     @staticmethod
-    def _can_be_recoupled_AxBC_ABxC(tensor_op: TensorOperator) -> bool:
+    def _can_be_recoupled_AxBC_ABxC(
+        tensor_op: TensorOperator,
+    ) -> bool:
         """
         Checks the subspaces of this operator. If the operator subspace structure returns one mixed state and one pure
         state, with space one = A and space two = BxC coupled like A x (BxC) we can recouple it to (AxB) x C given that
@@ -151,7 +163,9 @@ class TensorAlgebra(object):
 
     @classmethod
     def _perform_recoupling(
-        cls, tensor_op: TensorOperator, factor=1
+        cls,
+        tensor_op: TensorOperator,
+        factor=1,
     ) -> Union[None, TensorOperator, TensorOperatorComposite]:
         """
         First check whether any of the implemented recoupling methods can be applied. If so run the recoupling routine
@@ -174,7 +188,9 @@ class TensorAlgebra(object):
 
     @classmethod
     def _perform_recoupling_composite(
-        cls, tensor_op: TensorOperatorComposite, factor=1
+        cls,
+        tensor_op: TensorOperatorComposite,
+        factor=1,
     ) -> Union[None, TensorOperator, TensorOperatorComposite]:
         """
         See also _perform_recoupling method. This method is called for composites and loops through the children.
@@ -194,7 +210,8 @@ class TensorAlgebra(object):
 
     @classmethod
     def _recouple_substructure(
-        cls, tensor_op: Union[TensorOperator, TensorOperatorComposite]
+        cls,
+        tensor_op: Union[TensorOperator, TensorOperatorComposite],
     ) -> Union[None, TensorOperator, TensorOperatorComposite]:
         """
         Performs an incremental recoupling step (see also _recouple_basic_substructure). If the input is a
@@ -216,7 +233,8 @@ class TensorAlgebra(object):
 
     @classmethod
     def _recouple_basic_substructure(
-        cls, tensor_op: Union[TensorOperator, TensorOperatorComposite]
+        cls,
+        tensor_op: Union[TensorOperator, TensorOperatorComposite],
     ) -> Union[None, TensorOperator, TensorOperatorComposite]:
         """
         Idea: Recoupling should take place starting from the innermost operators going to the outermost operators.
@@ -236,7 +254,9 @@ class TensorAlgebra(object):
 
     @classmethod
     def _recouple_step(
-        cls, tensor_op: Union[TensorOperator, TensorOperatorComposite], factor=1
+        cls,
+        tensor_op: Union[TensorOperator, TensorOperatorComposite],
+        factor=1,
     ) -> Optional[TensorOperator, TensorOperatorComposite]:
         """
         Basic recouple step for a given tensor_op. Depending on whether the input is a TensorOperator or
@@ -257,7 +277,10 @@ class TensorAlgebra(object):
 
     @classmethod
     def recouple(
-        cls, tensor_op: Union[TensorOperator, TensorOperatorComposite], factor=1, outer_loop=True
+        cls,
+        tensor_op: Union[TensorOperator, TensorOperatorComposite],
+        factor=1,
+        outer_loop=True,
     ) -> Union[TensorOperator, TensorOperatorComposite]:
         """
         Perform the action recoupling if possible. The recoupling takes place in the _recouple_step method. When the
@@ -281,7 +304,10 @@ class TensorAlgebra(object):
         return out_tensor
 
     @staticmethod
-    def _recouple_ABxCD_ACxBD(tensor_op: TensorOperator, factor=1) -> Optional[TensorOperator]:
+    def _recouple_ABxCD_ACxBD(
+        tensor_op: TensorOperator,
+        factor=1,
+    ) -> Optional[TensorOperator]:
         """
         Tensor recoupling of the form
         (A_a x B_b)_ab x (C_c x D_d)_cd -> (A_a x C_c)_ac x (B_b x D_d)_bd
@@ -325,7 +351,10 @@ class TensorAlgebra(object):
         return out_tensor
 
     @staticmethod
-    def _recouple_ABxCD_ABCxD(tensor_op: TensorOperator, factor=1) -> Optional[TensorOperator]:
+    def _recouple_ABxCD_ABCxD(
+        tensor_op: TensorOperator,
+        factor=1,
+    ) -> Optional[TensorOperator]:
         """
         Tensor recoupling of the form
         (A_a x B_b)_ab x (C_c x D_d)_cd -> ((A_a x B_b)_ab x C_c)_abc x D_d
@@ -363,7 +392,10 @@ class TensorAlgebra(object):
         return out_tensor
 
     @staticmethod
-    def _recouple_ABxC_ACxB(tensor_op: TensorOperator, factor=1) -> Optional[TensorOperator]:
+    def _recouple_ABxC_ACxB(
+        tensor_op: TensorOperator,
+        factor=1,
+    ) -> Optional[TensorOperator]:
         """
         Tensor recoupling of the form
         (A_a x B_b)_ab x C_c -> (A_a x C_c)_ac x B_b
@@ -400,7 +432,10 @@ class TensorAlgebra(object):
         return out_tensor
 
     @staticmethod
-    def _recouple_ABxC_AxBC(tensor_op: TensorOperator, factor=1) -> Optional[TensorOperator]:
+    def _recouple_ABxC_AxBC(
+        tensor_op: TensorOperator,
+        factor=1,
+    ) -> Optional[TensorOperator]:
         """
         Tensor recoupling of the form
         (A_a x B_b)_ab x C_c -> A_a x (B_b x C_c)_bc

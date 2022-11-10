@@ -1,3 +1,3 @@
 import sys
 
-sys.path.append('stolpy/')
+sys.path.append("stolpy/")

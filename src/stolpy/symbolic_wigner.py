@@ -6,7 +6,10 @@ from sympy.physics.wigner import wigner_6j, wigner_9j
 from sympy import Symbol
 
 
-def factor_eval(factor: Union[int, float, Symbol], symbol_replace_dict: dict):
+def factor_eval(
+    factor: Union[int, float, Symbol],
+    symbol_replace_dict: dict,
+):
     """
     Auxiliary function to evaluate the factor. The function checks the type and substitutes potential symbols.
     :param factor: The factor from any of the objects below.
@@ -25,11 +28,16 @@ class SymbolicWigner(ABC):
     An auxiliary construct that helps to hold the evaluation of wigner_6j and wigner_9j symbols.
     """
 
-    def __init__(self):
+    def __init__(
+        self,
+    ):
         self.factor = None
 
     @abstractmethod
-    def evaluate(self, symbol_replace_dict: dict):
+    def evaluate(
+        self,
+        symbol_replace_dict: dict,
+    ):
         """
         Perform a substitution of the symbols in the object according to the input dictionary and evaluate the symbolic
         6j and or 9j symbols.
@@ -40,17 +48,24 @@ class SymbolicWigner(ABC):
         pass
 
     @abstractmethod
-    def __str__(self):
+    def __str__(
+        self,
+    ):
         """
         Print the object's components in a symbolic way, e.g. SixJ(j1 j2 j3; j4 j5 j6).
         :return: String representation of the object.
         """
         pass
 
-    def __repr__(self):
+    def __repr__(
+        self,
+    ):
         return self.__str__()
 
-    def __mul__(self, other: Union[SymbolicWigner, int, float, Symbol]) -> SymbolicWigner:
+    def __mul__(
+        self,
+        other: Union[SymbolicWigner, int, float, Symbol],
+    ) -> SymbolicWigner:
         """
         Multiplication with another object. The other object needs to be of type
             - SymbolicWigner -> Return Value is SymbolicWignerComposite
@@ -65,10 +80,16 @@ class SymbolicWigner(ABC):
             new_self.factor *= other
             return new_self
 
-    def __rmul__(self, other):
+    def __rmul__(
+        self,
+        other,
+    ):
         return self.__mul__(other)
 
-    def __truediv__(self, other):
+    def __truediv__(
+        self,
+        other,
+    ):
         return self.__mul__(1 / other)
 
 
@@ -78,17 +99,26 @@ class SymbolicWignerComposite(SymbolicWigner):
     symbolic way.
     """
 
-    def __init__(self, instance_1, instance_2):
+    def __init__(
+        self,
+        instance_1,
+        instance_2,
+    ):
         super().__init__()
         self.children = []
         self.add_children(instance_1)
         self.add_children(instance_2)
         self.factor = 1
 
-    def __str__(self):
+    def __str__(
+        self,
+    ):
         return f"{self.factor} * (" + " * ".join([str(child) for child in self.children]) + ")"
 
-    def __mul__(self, other: Union[SymbolicWigner, int, float, Symbol]) -> SymbolicWignerComposite:
+    def __mul__(
+        self,
+        other: Union[SymbolicWigner, int, float, Symbol],
+    ) -> SymbolicWignerComposite:
         """
         Overrides the __mul__ function in the interface. In case the "other" input is of type SymbolicWigner
         :param other: SymbolicWigner object. Depending on the exact subtype, the add_children class extends the
@@ -103,7 +133,10 @@ class SymbolicWignerComposite(SymbolicWigner):
             new_self.factor *= other
         return new_self
 
-    def evaluate(self, symbol_replace_dict: dict):
+    def evaluate(
+        self,
+        symbol_replace_dict: dict,
+    ):
         """
         Replace all symbols by numbers. If not all symbols. See also Symbolic6j and Symbolic9j. An error is raised in
         case the input of the 6j and/or 9j symbols in this collection are not completely replaced.
@@ -117,7 +150,10 @@ class SymbolicWignerComposite(SymbolicWigner):
         factor = factor_eval(self.factor, symbol_replace_dict)
         return factor * sub_symbol_value
 
-    def add_children(self, other: SymbolicWigner) -> None:
+    def add_children(
+        self,
+        other: SymbolicWigner,
+    ) -> None:
         """
         Extends children in case other is of same type, otherwise append other object to children. The action happens
         in place.
@@ -137,7 +173,16 @@ class Symbolic6j(SymbolicWigner):
 
     six_j_cache = {}
 
-    def __init__(self, j1, j2, j3, j4, j5, j6, factor: Union[int, float, Symbol] = 1):
+    def __init__(
+        self,
+        j1,
+        j2,
+        j3,
+        j4,
+        j5,
+        j6,
+        factor: Union[int, float, Symbol] = 1,
+    ):
         super().__init__()
         self.j1 = j1
         self.j2 = j2
@@ -150,7 +195,10 @@ class Symbolic6j(SymbolicWigner):
     def __str__(self):
         return f"{self.factor} * SixJ({self.j1} {self.j2} {self.j3}; {self.j4} {self.j5} {self.j6})"
 
-    def evaluate(self, symbol_replace_dict: dict):
+    def evaluate(
+        self,
+        symbol_replace_dict: dict,
+    ):
         """
         Replace all symbols by numbers. If not all symbols in the 6j symbol are provided, the wigner_6j function will
         raise an error.
@@ -186,7 +234,19 @@ class Symbolic9j(SymbolicWigner):
 
     nine_j_cache = {}
 
-    def __init__(self, j1, j2, j3, j4, j5, j6, j7, j8, j9, factor: Union[int, float, Symbol] = 1):
+    def __init__(
+        self,
+        j1,
+        j2,
+        j3,
+        j4,
+        j5,
+        j6,
+        j7,
+        j8,
+        j9,
+        factor: Union[int, float, Symbol] = 1,
+    ):
         super().__init__()
         self.j1 = j1
         self.j2 = j2
@@ -199,13 +259,18 @@ class Symbolic9j(SymbolicWigner):
         self.j9 = j9
         self.factor = factor
 
-    def __str__(self):
+    def __str__(
+        self,
+    ):
         return (
             f"{self.factor} * NineJ({self.j1} {self.j2} {self.j3}; {self.j4} {self.j5} {self.j6}; {self.j7} "
             + f"{self.j8} {self.j9})"
         )
 
-    def evaluate(self, symbol_replace_dict: dict):
+    def evaluate(
+        self,
+        symbol_replace_dict: dict,
+    ):
         """
         Replace all symbols by numbers. If not all symbols in the 9j symbol are provided, the wigner_9j function will
         raise an error.

@@ -13,23 +13,39 @@ class TensorOperatorInterface(ABC):
     Interface for the TensorOperator class and the TensorOperatorComposite class
     """
 
-    def __add__(self, other):
+    def __add__(
+        self,
+        other,
+    ):
         return self.add(other)
 
-    def __radd__(self, other):
+    def __radd__(
+        self,
+        other,
+    ):
         return self.__add__(other)
 
-    def __sub__(self, other):
+    def __sub__(
+        self,
+        other,
+    ):
         return self.add(-1 * other)
 
-    def __str__(self):
+    def __str__(
+        self,
+    ):
         return self.to_expression()
 
-    def __repr__(self):
+    def __repr__(
+        self,
+    ):
         return self.__str__()
 
     @abstractmethod
-    def __mul__(self, factor):
+    def __mul__(
+        self,
+        factor,
+    ):
         """
         Multiply a float/integer/symbol/etc. to the factor of this tensor operator / composite
 
@@ -38,17 +54,28 @@ class TensorOperatorInterface(ABC):
         """
         pass
 
-    def __rmul__(self, factor):
+    def __rmul__(
+        self,
+        factor,
+    ):
         return self.__mul__(factor)
 
-    def __truediv__(self, other):
+    def __truediv__(
+        self,
+        other,
+    ):
         return self * (1 / other)
 
-    def __rtruediv__(self, other):
+    def __rtruediv__(
+        self,
+        other,
+    ):
         return self.__truediv__(other)
 
     @abstractmethod
-    def to_expression(self) -> str:
+    def to_expression(
+        self,
+    ) -> str:
         """
         Return a string expression for the given object. The expression for a Tensor Operator should show the factor
         times an expression for the tensor operator, e.g., 15 * {A_a x B_b}_c. For composites, it should return the
@@ -59,7 +86,9 @@ class TensorOperatorInterface(ABC):
         pass
 
     @abstractmethod
-    def to_expression_no_factor(self) -> str:
+    def to_expression_no_factor(
+        self,
+    ) -> str:
         """
         Return a string expression similar to to_expression, but without explicitly printing the factor.
 
@@ -68,7 +97,10 @@ class TensorOperatorInterface(ABC):
         pass
 
     @abstractmethod
-    def add(self, other: TensorOperatorInterface) -> TensorOperatorInterface:
+    def add(
+        self,
+        other: TensorOperatorInterface,
+    ) -> TensorOperatorInterface:
         """
         Add two TensorOperators/Composites.
         In case we add two TensorOperators -> TensorOperator with new factor if the operators are identical up to the
@@ -82,7 +114,12 @@ class TensorOperatorInterface(ABC):
         pass
 
     @abstractmethod
-    def couple(self, other: TensorOperatorInterface, rank, factor) -> TensorOperatorInterface:
+    def couple(
+        self,
+        other: TensorOperatorInterface,
+        rank,
+        factor,
+    ) -> TensorOperatorInterface:
         """
         Allows to couple TensorOperators and Composites with each other.
         E.g., A_a.couple(B_b, c, 15) -> 15 * {A_a x B_b}_c. Similar one can couple each instance in a Composite to an
@@ -106,20 +143,31 @@ class TensorOperatorComposite(TensorOperatorInterface):
     However, this class is flat. It cannot hold instances of itself.
     """
 
-    def __init__(self, *args):
+    def __init__(
+        self,
+        *args,
+    ):
         self._children = [arg for arg in args if arg]
         self._simplify()
 
     @property
-    def children(self):
+    def children(
+        self,
+    ):
         return self._children
 
     @children.setter
-    def children(self, children):
+    def children(
+        self,
+        children,
+    ):
         self._children = children
         self._simplify()
 
-    def __mul__(self, factor):
+    def __mul__(
+        self,
+        factor,
+    ):
         """
         Multiply each of the children with a factor
 
@@ -131,31 +179,44 @@ class TensorOperatorComposite(TensorOperatorInterface):
             args.append(child * factor)
         return self.__class__(*args)
 
-    def __eq__(self, other: TensorOperatorInterface) -> bool:
+    def __eq__(
+        self,
+        other: TensorOperatorInterface,
+    ) -> bool:
         if not isinstance(other, self.__class__):
             return False
         if len(self.children) != len(other.children):
             return False
         return all([child1 == child2 for child1, child2 in zip(self.children, other.children)])
 
-    def __ne__(self, other: TensorOperatorInterface) -> bool:
+    def __ne__(
+        self,
+        other: TensorOperatorInterface,
+    ) -> bool:
         return not self.__eq__(other)
 
-    def to_expression(self) -> str:
+    def to_expression(
+        self,
+    ) -> str:
         """
         Returns a string expression for the sum of all children.
         :return: String
         """
         return " + ".join([child.to_expression() for child in self.children])
 
-    def to_expression_no_factor(self) -> str:
+    def to_expression_no_factor(
+        self,
+    ) -> str:
         """
         Returns a string expression for the sum of all children without explicitly showing the factors.
         :return: String
         """
         return " + ".join([child.to_expression_no_factor() for child in self.children])
 
-    def add(self, other: TensorOperatorInterface) -> TensorOperatorComposite:
+    def add(
+        self,
+        other: TensorOperatorInterface,
+    ) -> TensorOperatorComposite:
         """
         Extends the list of children depending on the input and returns a new instance of this class with the updated
         list.
@@ -170,7 +231,12 @@ class TensorOperatorComposite(TensorOperatorInterface):
         new_object = self.__class__(*args)
         return new_object
 
-    def couple(self, other: TensorOperatorInterface, rank, factor) -> TensorOperatorComposite:
+    def couple(
+        self,
+        other: TensorOperatorInterface,
+        rank,
+        factor,
+    ) -> TensorOperatorComposite:
         """
         Couple a TensorOperator or TensorOperatorComposite to all children of this object and return a new instance
         of this class with an updated list of children.
@@ -190,7 +256,9 @@ class TensorOperatorComposite(TensorOperatorInterface):
         new_object = self.__class__(*args)
         return new_object
 
-    def _simplify(self):
+    def _simplify(
+        self,
+    ):
         """
         Auxiliary function that simplifies the list of children in place.
         It removes zero entries and combines matching entries to one.
@@ -235,7 +303,10 @@ class TensorOperator(TensorOperatorInterface):
         self._symbol = symbol
         self._substructure = substructure
 
-    def __mul__(self, factor) -> Optional[TensorOperator]:
+    def __mul__(
+        self,
+        factor,
+    ) -> Optional[TensorOperator]:
         """
         Allows to multiply a factor to the tensor operator. In case the factor is 0, the method returns one. Otherwise
         a new instance of this class with an updated factor is returned.
@@ -249,7 +320,10 @@ class TensorOperator(TensorOperatorInterface):
         else:
             return None
 
-    def __eq__(self, other: Union[TensorOperatorComposite, TensorOperator]) -> bool:
+    def __eq__(
+        self,
+        other: Union[TensorOperatorComposite, TensorOperator],
+    ) -> bool:
         if not isinstance(other, self.__class__):
             return False
         elif self.space == other.space and self.symbol == other.symbol and self.rank == other.rank:
@@ -257,23 +331,35 @@ class TensorOperator(TensorOperatorInterface):
         else:
             return False
 
-    def __ne__(self, other) -> bool:
+    def __ne__(
+        self,
+        other,
+    ) -> bool:
         return not self.__eq__(other)
 
     @property
-    def rank(self):
+    def rank(
+        self,
+    ):
         return self._rank
 
     @property
-    def factor(self):
+    def factor(
+        self,
+    ):
         return self._factor
 
     @factor.setter
-    def factor(self, value):
+    def factor(
+        self,
+        value,
+    ):
         self._factor = value
 
     @property
-    def symbol(self):
+    def symbol(
+        self,
+    ):
         return self._symbol
 
     @symbol.setter
@@ -281,22 +367,34 @@ class TensorOperator(TensorOperatorInterface):
         self._symbol = value
 
     @property
-    def space(self):
+    def space(
+        self,
+    ):
         return self._space
 
     @space.setter
-    def space(self, value):
+    def space(
+        self,
+        value,
+    ):
         self._space = value
 
     @property
-    def substructure(self):
+    def substructure(
+        self,
+    ):
         return self._substructure
 
     @substructure.setter
-    def substructure(self, value):
+    def substructure(
+        self,
+        value,
+    ):
         self._substructure = value
 
-    def get_depth(self) -> int:
+    def get_depth(
+        self,
+    ) -> int:
         """
         Auxiliary function to get the maximum coupling depth of the operator. This is done by going through the
         substructure recursively.
@@ -310,7 +408,8 @@ class TensorOperator(TensorOperatorInterface):
             return sub_structure_depth
 
     def add(
-        self, other: Union[TensorOperator, TensorOperatorComposite]
+        self,
+        other: Union[TensorOperator, TensorOperatorComposite],
     ) -> Union[TensorOperator, TensorOperatorComposite, None]:
         """
         Allows the addition of two tensor operators. If the tensor operators are identical up to the factor, return an
@@ -331,7 +430,9 @@ class TensorOperator(TensorOperatorInterface):
         else:
             return TensorOperatorComposite(self, other)
 
-    def to_expression(self) -> str:
+    def to_expression(
+        self,
+    ) -> str:
         """
         A string expression of the operator at hand.
 
@@ -339,7 +440,9 @@ class TensorOperator(TensorOperatorInterface):
         """
         return str(self.factor) + " * " + self.to_expression_no_factor()
 
-    def to_expression_no_factor(self) -> str:
+    def to_expression_no_factor(
+        self,
+    ) -> str:
         """
         A string expression of the operator at hand, without explicitly listing the factor.
 
@@ -351,7 +454,13 @@ class TensorOperator(TensorOperatorInterface):
             + str(self.rank)
         )
 
-    def couple(self, other: TensorOperatorInterface, rank, factor, order=True) -> Optional[TensorOperatorInterface]:
+    def couple(
+        self,
+        other: TensorOperatorInterface,
+        rank,
+        factor,
+        order=True,
+    ) -> Optional[TensorOperatorInterface]:
         """
         Couple two Tensor Operators together to a new Tensor Operator of a given rank.
         There are two simplifications. First, the new rank has to fulfill
@@ -399,7 +508,9 @@ class TensorOperator(TensorOperatorInterface):
                 new_object.order()
             return new_object
 
-    def commute(self) -> Optional[TensorOperator]:
+    def commute(
+        self,
+    ) -> Optional[TensorOperator]:
         """
         In case this tensor operator has a substructure, it commutes the substructure and applies the correct factor to
         it. A new instance of this class is returned.
@@ -413,7 +524,9 @@ class TensorOperator(TensorOperatorInterface):
         else:
             return None
 
-    def order(self):
+    def order(
+        self,
+    ):
         """
         Order the tensor operators according to
             1st) their space (alphabetically)
@@ -447,7 +560,9 @@ class TensorOperator(TensorOperatorInterface):
             self.space = new_top.space
             self.substructure = new_top.substructure
 
-    def get_space_structure(self):
+    def get_space_structure(
+        self,
+    ):
         """
         Goes recursively through all operators and obtains the space object of each operator. The function returns a
         (nested) List with all spaces.

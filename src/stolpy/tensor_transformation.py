@@ -20,7 +20,11 @@ class TensorFromVectors(object):
     """
 
     @classmethod
-    def scalar_product(cls, operator_1: TensorOperator, operator_2: TensorOperator) -> Optional[TensorOperator]:
+    def scalar_product(
+        cls,
+        operator_1: TensorOperator,
+        operator_2: TensorOperator,
+    ) -> Optional[TensorOperator]:
         """
         Uses TensorOperator objects as input, pretends they are still vectors that are coupled via a scalar product
         and returns the tensor product
@@ -35,7 +39,11 @@ class TensorFromVectors(object):
         return operator_1.couple(operator_2, 0, -sqrt(3))
 
     @classmethod
-    def vector_product(cls, operator_1: TensorOperator, operator_2: TensorOperator) -> Optional[TensorOperator]:
+    def vector_product(
+        cls,
+        operator_1: TensorOperator,
+        operator_2: TensorOperator,
+    ) -> Optional[TensorOperator]:
         """
         Uses TensorOperator objects as input, pretends they are still vectors that are coupled via a vector product
         and returns the tensor product
