@@ -10,7 +10,7 @@ class TestTensorSpace(unittest.TestCase):
 
     spin = TensorSpace("spin", 1)
     rel = TensorSpace("rel", 0)
-    cm = TensorSpace("cm", 3)
+    cm = TensorSpace("cm", 2)
 
     def test_creation_duplicate_error(self):
         with self.assertRaises(DuplicateSpaceError):
