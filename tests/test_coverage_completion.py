@@ -75,24 +75,32 @@ class CompleteTensorAlgebra(unittest.TestCase):
         self.assertEqual('-1 * {A_1 x {B_1 x C_0}_1}_0', str(rec_top))
 
     def test_can_be_recoupled_AxBC_ABxC(self):
-        """
-        Not really a unit test, we aim to travel all branches that are missed by the other unit tests
-        """
         A,B,C = symbols('A,B,C')
         space_a = TensorSpace('a', 0)
         space_b = TensorSpace('b', 1)
+        space_x = TensorSpace('x', 2)
         top_a = TensorOperator(rank=1, symbol=A, space=space_a)
         top_b = TensorOperator(rank=1, symbol=B, space=space_b)
         top_c = TensorOperator(rank=0, symbol=C, space=space_b)
         top = top_a.couple(top_b, rank=0, factor=1).couple(top_c, rank=0, factor=1)
-        rec_top = ta._can_be_recoupled_AxBC_ABxC(top)
-        rec_top = ta._can_be_recoupled_AxBC_ABxC(top_a)
+        bool_top = ta._can_be_recoupled_AxBC_ABxC(top)
+        self.assertEqual(False, bool_top)
+        bool_top = ta._can_be_recoupled_AxBC_ABxC(top_a)
+        self.assertEqual(False, bool_top)
         top = top_a.couple(top_b.couple(top_c, rank=1, factor=1), rank=0, factor=1)
-        rec_top = ta._can_be_recoupled_AxBC_ABxC(top)
-        top_b = TensorOperator(rank=1, symbol=B, space=space_a)
+        bool_top = ta._can_be_recoupled_AxBC_ABxC(top)
+        self.assertEqual(False, bool_top)
+        top_new_a = top_a.couple(top_b, rank=1, factor=1)
+        top_c = TensorOperator(rank=1, symbol=B, space=space_x)
+        top = top_new_a.couple(top_b.couple(top_c, rank=1, factor=1), rank=0, factor=1)
+        bool_top = ta._can_be_recoupled_AxBC_ABxC(top)
+        self.assertEqual(True, bool_top)
         top = top_a.couple(top_b.couple(top_c, rank=1, factor=1), rank=0, factor=1)
-        rec_top = ta._can_be_recoupled_AxBC_ABxC(top)
-        self.assertEqual(True, True)
+        bool_top = ta._can_be_recoupled_AxBC_ABxC(top)
+        self.assertEqual(False, bool_top)
+
+    def test_recouple_ABxCD_ABCxD(self):
+        pass
 
 
 if __name__ == '__main__':
