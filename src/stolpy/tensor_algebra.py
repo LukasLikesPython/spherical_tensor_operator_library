@@ -203,7 +203,7 @@ class TensorAlgebra(object):
         for child in tensor_op.children[1:]:
             res = cls._perform_recoupling(child, factor)
             if not res:
-                continue
+                continue  # pragma: no cover
             out_tensor += res
 
         return out_tensor
@@ -227,7 +227,7 @@ class TensorAlgebra(object):
             for child in tensor_op.children[1:]:
                 res = cls._recouple_basic_substructure(child)
                 if not res:
-                    continue
+                    continue  # pragma: no cover
                 out_tensor += res
             return out_tensor
 
@@ -334,13 +334,13 @@ class TensorAlgebra(object):
         for ac in range(abs(a - c), a + c + 1):
             for bd in range(abs(b - d), b + d + 1):
                 if not (abs(ac - bd) <= rank <= ac + bd):
-                    continue
+                    continue  # pragma: no cover
                 operator_factor = new_factor * jsc(ab, cd, ac, bd) * wigner_9j(a, b, ab, c, d, cd, ac, bd, rank)
                 if operator_factor != 0:
                     new_first_pair = tensor_a.couple(tensor_c, ac, 1)
                     new_second_pair = tensor_b.couple(tensor_d, bd, 1)
                     if not new_first_pair or not new_second_pair:
-                        continue
+                        continue  # pragma: no cover
                     new_tensor = new_first_pair.couple(new_second_pair, rank, operator_factor)
                     if not out_tensor:
                         out_tensor = new_tensor
@@ -381,7 +381,7 @@ class TensorAlgebra(object):
             if operator_factor != 0:
                 triplet = first_pair.couple(tensor_c, abc, 1)
                 if not triplet:
-                    continue
+                    continue  # pragma: no cover
                 new_tensor = triplet.couple(tensor_d, rank, operator_factor)
                 if not out_tensor:
                     out_tensor = new_tensor
@@ -421,7 +421,7 @@ class TensorAlgebra(object):
             if operator_factor != 0:
                 new_pair = tensor_a.couple(tensor_c, ac, 1)
                 if not new_pair:
-                    continue
+                    continue  # pragma: no cover
                 new_tensor = new_pair.couple(tensor_b, rank, operator_factor)
                 if not out_tensor:
                     out_tensor = new_tensor
@@ -461,7 +461,7 @@ class TensorAlgebra(object):
             if operator_factor != 0:
                 new_pair = tensor_b.couple(tensor_c, bc, 1)
                 if not new_pair:
-                    continue
+                    continue  # pragma: no cover
                 new_tensor = tensor_a.couple(new_pair, rank, operator_factor)
                 if not out_tensor:
                     out_tensor = new_tensor
