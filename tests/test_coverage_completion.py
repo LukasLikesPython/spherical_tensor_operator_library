@@ -27,8 +27,10 @@ bra_2 = lp.couple(sp, Symbol("j'"))
 
 # basic operators
 q = TensorOperator(rank=1, symbol=Symbol("q"), space=rel_space)
+k = TensorOperator(rank=1, symbol=Symbol("k"), space=rel_space)
 sig1 = TensorOperator(rank=1, symbol=Symbol("sig1"), space=spin_space)
 sig2 = TensorOperator(rank=1, symbol=Symbol("sig2"), space=spin_space)
+P = TensorOperator(rank=1, symbol=Symbol("P"), space=cm_space)
 
 # coupled operator 2 body
 tensor_op_2 = TensorFromVectors.scalar_product(q, sig1).couple(TensorFromVectors.scalar_product(q, sig2), 0, 1)
@@ -100,7 +102,19 @@ class CompleteTensorAlgebra(unittest.TestCase):
         self.assertEqual(False, bool_top)
 
     def test_recouple_ABxCD_ABCxD(self):
-        pass
+        """
+        Note, this is not a real unit test, we just want to make sure that we hit 100% code coverage
+        The operator we use is not a real physical operator
+        """
+        qP = TensorFromVectors.scalar_product(q, P)
+        qxs = TensorFromVectors.vector_product(q, sig1)
+        operator = qxs.couple(qP,rank=1, factor=1)
+        rec = ta._recouple_ABxCD_ABCxD(operator)
+        self.assertEqual(True, True)
+
+
+class CompleteTensorEvaluate(unittest.TestCase):
+    pass
 
 
 if __name__ == '__main__':

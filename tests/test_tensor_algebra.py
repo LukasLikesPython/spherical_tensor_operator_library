@@ -36,7 +36,7 @@ class TestTensorAlgebra(unittest.TestCase):
     ks2 = TensorFromVectors.scalar_product(k, sig2)
 
     def test_recouple_ABxCD_ACxBD(self):
-        print("test_recouple_ABxCD_ACxBD")
+        #print("test_recouple_ABxCD_ACxBD")
         operator = self.qs1.couple(self.qs2, 0, 1)
         self.assertEqual(
             "1 * {{q_1 x q_1}_0 x {sig1_1 x sig2_1}_0}_0" + " + sqrt(5) * {{q_1 x q_1}_2 x {sig1_1 x sig2_1}_2}_0",
@@ -53,12 +53,12 @@ class TestTensorAlgebra(unittest.TestCase):
         )
 
     def test_recouple_ABxC_ACxB(self):
-        print("test_recouple_ABxC_ACxB")
+        #print("test_recouple_ABxC_ACxB")
         operator = I * TensorFromVectors.scalar_product(self.qxP, self.sig1)
         self.assertEqual("sqrt(6) * {{q_1 x sig1_1}_1 x P_1}_0", str(TensorAlgebra._recouple_ABxC_ACxB(operator)))
 
     def test_recouple_ABxCD_ABCxD(self):
-        print("test_recouple_ABxCD_ABCxD")
+        #print("test_recouple_ABxCD_ABCxD")
         operator = TensorFromVectors.scalar_product(self.qxk, self.sxs).couple(self.qP, 0, 1)
         self.assertEqual(
             "6 * {{{{k_1 x q_1}_1 x {sig1_1 x sig2_1}_1}_0 x q_1}_1 x P_1}_0",
@@ -66,7 +66,7 @@ class TestTensorAlgebra(unittest.TestCase):
         )
 
     def test_recouple_ABxC_AxBC(self):
-        print("test_recouple_ABxC_AxBC")
+        #print("test_recouple_ABxC_AxBC")
         operator = self.qs1.couple(self.sig2, 1, 1)  # Artificial test case, not a real operator
         self.assertEqual(
             "sqrt(3)/3 * {q_1 x {sig1_1 x sig2_1}_0}_1 + -1 * {q_1 x {sig1_1 x sig2_1}_1}_1"
@@ -75,7 +75,7 @@ class TestTensorAlgebra(unittest.TestCase):
         )
 
     def test_recouple_NLO_central(self):
-        print("test_recouple_NLO_central")
+        #print("test_recouple_NLO_central")
         operator = self.qsq
         self.assertEqual("-sqrt(3) * {q_1 x q_1}_0", str(TensorAlgebra.recouple(operator)))
         operator = self.ksq
@@ -86,12 +86,12 @@ class TestTensorAlgebra(unittest.TestCase):
         self.assertEqual("3 * {{k_1 x k_1}_0 x {sig1_1 x sig2_1}_0}_0", str(TensorAlgebra.recouple(operator)))
 
     def test_recouple_NLO_spin_orbit(self):
-        print("test_recouple_NLO_spin_orbit")
+        #print("test_recouple_NLO_spin_orbit")
         operator = TensorFromVectors.scalar_product(self.qxk, self.sig1) * (I / 2)
         self.assertEqual("sqrt(6)/2 * {{k_1 x q_1}_1 x sig1_1}_0", str(TensorAlgebra.recouple(operator)))
 
     def test_recouple_NLO_tensor(self):
-        print("test_recouple_NLO_tensor")
+        #print("test_recouple_NLO_tensor")
         operator = self.qs1.couple(self.qs2, 0, 1)
         self.assertEqual(
             "1 * {{q_1 x q_1}_0 x {sig1_1 x sig2_1}_0}_0 + sqrt(5) * {{q_1 x q_1}_2 x {sig1_1 x sig2_1}_2}_0",
@@ -104,7 +104,7 @@ class TestTensorAlgebra(unittest.TestCase):
         )
 
     def test_recouple_N3LO_central(self):
-        print("test_recouple_N3LO_central")
+        #print("test_recouple_N3LO_central")
         operator = self.qsq.couple(self.qsq, 0, 1)
         self.assertEqual("3 * {{q_1 x q_1}_0 x {q_1 x q_1}_0}_0", str(TensorAlgebra.recouple(operator)))
         operator = self.ksq.couple(self.ksq, 0, 1)
@@ -120,7 +120,7 @@ class TestTensorAlgebra(unittest.TestCase):
         )
 
     def test_recouple_N3LO_spin_orbit(self):
-        print("test_recouple_N3LO_spin_orbit")
+        #print("test_recouple_N3LO_spin_orbit")
         operator = I / 2 * TensorFromVectors.scalar_product(self.sig1, self.qxk).couple(self.qsq, 0, 1)
         self.assertEqual(
             "3*sqrt(2)/2 * {{{k_1 x q_1}_1 x {q_1 x q_1}_0}_1 x sig1_1}_0", str(TensorAlgebra.recouple(operator))
@@ -132,7 +132,7 @@ class TestTensorAlgebra(unittest.TestCase):
         )
 
     def test_recouple_N3LO_tensor(self):
-        print("test_recouple_N3LO_tensor")
+        #print("test_recouple_N3LO_tensor")
         operator = self.qs1.couple(self.qs2, 0, 1).couple(self.qsq, 0, 1)
         self.assertEqual(
             "-sqrt(3) * {{{q_1 x q_1}_0 x {q_1 x q_1}_0}_0 x {sig1_1 x sig2_1}_0}_0"
@@ -171,7 +171,7 @@ class TestTensorAlgebra(unittest.TestCase):
         )
 
     def test_three_spaces(self):
-        print("test_three_spaces")
+        #print("test_three_spaces")
         operator = self.ksq.couple(self.Psq, 0, 1).couple(self.ssq, 0, 1)
         self.assertEqual(
             "-3*sqrt(3) * {{{k_1 x k_1}_0 x {sig1_1 x sig2_1}_0}_0 x {P_1 x P_1}_0}_0",
