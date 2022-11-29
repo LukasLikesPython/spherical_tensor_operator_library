@@ -5,7 +5,7 @@ import sys
 sys.path.append('../src/')
 
 from stolpy.tensor_space import TensorSpace
-from stolpy.tensor_transformation import TensorFromVectors
+from stolpy.tensor_transformation import TensorFromVectors, WrongOperatorTypeError
 from stolpy.quantum_states import BasicState
 from stolpy.tensor_operator import TensorOperator
 from stolpy.tensor_evaluate import MatrixElement, ReducedMatrixElement, RankMismatchError, StateMismatchError
@@ -210,7 +210,43 @@ class CompleteTensorEvaluate(unittest.TestCase):
         self.assertTrue(me_a == me_a)
 
 
+class CompleteTensorOperator(unittest.TestCase):
+    def test_repr(self):
+        top_list = [q, k]
+        self.assertEqual('[1 * q_1, 1 * k_1]', str(top_list))
 
+    def test_truediv(self):
+        self.assertEqual('0.5 * q_1', str(q/2))
+
+    def test_zero_mul(self):
+        self.assertEqual(None, q*0)
+
+    def test_failing_commute(self):
+        self.assertEqual(None, q.commute())
+
+    def test_get_space_structure(self):
+        self.assertEqual("[[rel-space: order = 0, spin-space: order = 1],"
+                         " [rel-space: order = 0, spin-space: order = 1]]",
+                         str(tensor_op.get_space_structure()))
+        self.assertEqual('rel-space: order = 0', str(q.get_space_structure()))
+
+
+class CompleteTensorSpace(unittest.TestCase):
+    def test_ge(self):
+        space_a = TensorSpace(name='a', order=0)
+        self.assertTrue(space_a >= space_a)
+
+    def test_contains(self):
+        space_a = TensorSpace(name='a', order=0)
+        space_b = TensorSpace(name='b', order=1)
+        space_c = TensorSpace(name='c', order=2)
+        self.assertFalse((space_a + space_c).contains(space_b))
+
+
+class CompleteTensorTransformation(unittest.TestCase):
+    def test_wrong_type(self):
+        self.assertRaises(WrongOperatorTypeError, TensorFromVectors.scalar_product, q, 1)
+        self.assertRaises(WrongOperatorTypeError, TensorFromVectors.vector_product, q, 1)
 
 
 if __name__ == '__main__':

@@ -15,37 +15,31 @@ class TensorOperatorInterface(ABC):
 
     def __add__(
         self,
-        other,
-    ):
+        other: TensorOperatorInterface,
+    ) -> TensorOperatorInterface:
         return self.add(other)
-
-    def __radd__(
-        self,
-        other,
-    ):
-        return self.__add__(other)
 
     def __sub__(
         self,
-        other,
-    ):
+        other: TensorOperatorInterface,
+    ) -> TensorOperatorInterface:
         return self.add(-1 * other)
 
     def __str__(
         self,
-    ):
+    ) -> str:
         return self.to_expression()
 
     def __repr__(
         self,
-    ):
+    ) -> str:
         return self.__str__()
 
     @abstractmethod
     def __mul__(
         self,
         factor,
-    ):
+    ) -> TensorOperatorInterface:
         """
         Multiply a float/integer/symbol/etc. to the factor of this tensor operator / composite
 
@@ -57,20 +51,14 @@ class TensorOperatorInterface(ABC):
     def __rmul__(
         self,
         factor,
-    ):
+    ) -> TensorOperatorInterface:
         return self.__mul__(factor)
 
     def __truediv__(
         self,
         other,
-    ):
+    ) -> TensorOperatorInterface:
         return self * (1 / other)
-
-    def __rtruediv__(
-        self,
-        other,
-    ):
-        return self.__truediv__(other)
 
     @abstractmethod
     def to_expression(
@@ -155,14 +143,6 @@ class TensorOperatorComposite(TensorOperatorInterface):
         self,
     ):
         return self._children
-
-    @children.setter
-    def children(
-        self,
-        children,
-    ):
-        self._children = children
-        self._simplify()
 
     def __mul__(
         self,
@@ -271,7 +251,7 @@ class TensorOperatorComposite(TensorOperatorInterface):
         while len(children) > 0:
             child = children.pop(0)
             if not child:  # Remove bad couplings
-                continue
+                continue  # pragma: no cover
             for i, other_child in enumerate(children):
                 if child == other_child:
                     children.pop(i)
