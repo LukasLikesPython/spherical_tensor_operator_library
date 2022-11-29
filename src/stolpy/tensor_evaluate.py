@@ -287,10 +287,8 @@ class BasicMatrixElementLeafInterface(MatrixElementInterface):
             self._operator = TensorAlgebra.recouple(operator)  # Simplifies the operator structure
         else:
             self._operator = operator
-        if operator:
-            self._factor = factor * operator.factor
-        else:
-            self._factor = factor
+
+        self._factor = factor * operator.factor
 
     @property
     def bra(
