@@ -8,7 +8,7 @@ from stolpy.tensor_space import TensorSpace
 from stolpy.tensor_transformation import TensorFromVectors
 from stolpy.quantum_states import BasicState
 from stolpy.tensor_operator import TensorOperator
-from stolpy.tensor_evaluate import MatrixElement
+from stolpy.tensor_evaluate import MatrixElement, ReducedMatrixElement, RankMismatchError, StateMismatchError
 from stolpy.symbolic_wigner import Symbolic6j, Symbolic9j
 from stolpy.tensor_algebra import TensorAlgebra as ta
 
@@ -52,6 +52,7 @@ subsdict = {
     Symbol("j"): 2,
     Symbol("j'"): 2,
 }
+
 
 class CompleteQuantumStates(unittest.TestCase):
     def test_state_couple_without_other_qn(self):
@@ -149,8 +150,28 @@ class CompleteTensorEvaluate(unittest.TestCase):
         self.assertEqual("<2(p'11)|{{q_1 x q_1}_0 x {sig1_1 x sig2_1}_0}_0 + "
                          "{{q_1 x q_1}_2 x {sig1_1 x sig2_1}_2}_0|2(p11)>", str(eval_element))
 
+    def test_reduce_me_eq(self):
+        red_me_1 = ReducedMatrixElement(lp, l, TensorFromVectors.scalar_product(q, q))
+        red_me_2 = ReducedMatrixElement(lp, l, TensorFromVectors.scalar_product(k, k))
+        self.assertFalse(red_me_1 == red_me_2)
+
     def test_error_rank_mismatch(self):
-        op = ""
+        op = TensorFromVectors.scalar_product(q, q).couple(k, 1, 1)
+        me_5 = MatrixElement(bra, ket, op)
+        self.assertRaises(RankMismatchError, me_5.full_decouple)
+
+    def test_error_state_mismatch(self):
+        op = TensorFromVectors.scalar_product(q, q).couple(k, 1, 1)
+        L = BasicState(Symbol("L"), cm_space, Symbol("P"))
+        ket_2 = l.couple(s, Symbol("j")).couple(L, Symbol("J"))
+        self.assertRaises(StateMismatchError, MatrixElement, bra, ket_2, op)
+        op = TensorFromVectors.scalar_product(P, P)
+        self.assertRaises(StateMismatchError, MatrixElement, bra, ket, op)
+
+    def test_factor_print(self):
+        op = TensorFromVectors.scalar_product(q, q) * 2
+        me_7 = MatrixElement(lp, l, op)
+        self.assertEqual("-2*sqrt(3) * <p'l'm_l'|{q_1 x q_1}_0|plm_l>", str(me_7))
 
 
 if __name__ == '__main__':

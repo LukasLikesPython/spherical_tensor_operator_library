@@ -334,9 +334,8 @@ class BasicMatrixElementLeafInterface(MatrixElementInterface):
                 ]
             )
         else:
-            factor = self.operator.factor
-            if factor != 1:
-                output = f"{factor} * {self._state_representation(self.operator)}"
+            if self.factor != 1:
+                output = f"{self.factor} * {self._state_representation(self.operator)}"
             else:
                 output = f"{self._state_representation(self.operator)}"
             return output
