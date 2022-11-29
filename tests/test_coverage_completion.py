@@ -134,7 +134,7 @@ class CompleteTensorAlgebra(unittest.TestCase):
 class CompleteTensorEvaluate(unittest.TestCase):
     def test_eq_reduced_me_composite(self):
         red_me = me.full_decouple()
-        print(red_me.children)
+        str(red_me.children)
         self.assertEqual(red_me, red_me)  # Check True
         red_me_2 = me_2.full_decouple()
         self.assertFalse(red_me_2 == red_me)  # Check False
@@ -172,6 +172,43 @@ class CompleteTensorEvaluate(unittest.TestCase):
         op = TensorFromVectors.scalar_product(q, q) * 2
         me_7 = MatrixElement(lp, l, op)
         self.assertEqual("-2*sqrt(3) * <p'l'm_l'|{q_1 x q_1}_0|plm_l>", str(me_7))
+
+    def test_full_composite_decouple(self):
+        """
+        Note: Not a unit test, does not close any gaps, but it shows the capabilities of this code
+        """
+        space_a = TensorSpace(name='a', order=0)
+        space_b = TensorSpace(name='b', order=1)
+        space_c = TensorSpace(name='c', order=2)
+        A1, A2, A3, A4, A5, B1, B2, B3, B4, B5, C1, C2 = symbols('A1, A2, A3, A4, A5, B1, B2, B3, B4, B5, C1, C2')
+        op_a1 = TensorOperator(symbol=A1, rank=1, space=space_a)
+        op_a2 = TensorOperator(symbol=A2, rank=1, space=space_a)
+        op_a3 = TensorOperator(symbol=A3, rank=1, space=space_a)
+        op_a4 = TensorOperator(symbol=A4, rank=1, space=space_a)
+        op_a5 = TensorOperator(symbol=A5, rank=1, space=space_a)
+        op_b1 = TensorOperator(symbol=B1, rank=1, space=space_b)
+        op_b2 = TensorOperator(symbol=B2, rank=1, space=space_b)
+        op_b3 = TensorOperator(symbol=B3, rank=1, space=space_b)
+        op_b4 = TensorOperator(symbol=B4, rank=1, space=space_b)
+        op_b5 = TensorOperator(symbol=B5, rank=1, space=space_b)
+        op_c1 = TensorOperator(symbol=C1, rank=1, space=space_c)
+        op_c2 = TensorOperator(symbol=C2, rank=1, space=space_c)
+        op_1 = op_a1.couple(op_b5, 2, 1).couple(op_a3, 3, 1) \
+            .couple(op_a5.couple(op_a4, 2, 1), 5, 1).couple(op_c1.couple(op_a1, 2, 1), 6, 1)
+        op_2 = op_b3.couple(op_b2, 2, 1).couple(op_b1, 3, 1).couple(op_b4, 4, 1).couple(op_b2, 5, 1). \
+            couple(op_c2.couple(op_c1, 2, 1), 6, 1)
+        op = op_1.couple(op_2, 0, 1)
+        state_a = BasicState(Symbol("a"), space_a)
+        state_b = BasicState(Symbol("b"), space_b)
+        state_ap = BasicState(Symbol("a'"), space_a)
+        state_bp = BasicState(Symbol("b'"), space_b)
+        state_c = BasicState(Symbol("c"), space_c)
+        state_cp = BasicState(Symbol("c'"), space_c)
+        bra = state_ap.couple(state_bp, Symbol("d'")).couple(state_cp, Symbol("e'"))
+        ket = state_a.couple(state_b, Symbol("d")).couple(state_c, Symbol("e"))
+        me = MatrixElement(bra, ket, op)
+        decoupled_1 = me.decouple()
+        decoupled_2 = decoupled_1.decouple()
 
 
 if __name__ == '__main__':

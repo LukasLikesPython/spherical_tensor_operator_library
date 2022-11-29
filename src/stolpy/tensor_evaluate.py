@@ -154,16 +154,13 @@ class ReducedMatrixElementComposite(MatrixElementInterface):
         returned afterwards. The decoupling happens recursively, thus, it is capable to handle arbitrary structures.
         :return: ReducedMatrixElementComposite
         """
-        changed = True
-        while changed:
-            changed = False
-            for _, me_a, me_b in self.children:
-                me_a_copy = copy.deepcopy(me_a)
-                me_b_copy = copy.deepcopy(me_b)
-                me_a.decouple()
-                me_b.decouple()
-                if me_a != me_a_copy or me_b != me_b_copy:
-                    changed = True
+
+        for _, me_a, me_b in self.children:
+            me_a_copy = copy.deepcopy(me_a)
+            me_b_copy = copy.deepcopy(me_b)
+            me_a.decouple()
+            me_b.decouple()
+
         return self
 
     def decouple(
@@ -183,17 +180,12 @@ class ReducedMatrixElementComposite(MatrixElementInterface):
         new_me_b = []
         for _, me_a, me_b in self.children:
             new_composite_a = me_a.decouple()
-            new_composite_b = me_b.decouple()
-
-            if new_composite_a:
+            if new_composite_a:  # Note, by construction, a me_b.decouple() returns None in all cases
                 new_me_a.append(new_composite_a._full_composite_decouple())
             else:
                 new_me_a.append(me_a)
 
-            if new_composite_b:
-                new_me_b.append(new_composite_b._full_composite_decouple())
-            else:
-                new_me_b.append(me_b)
+            new_me_b.append(me_b)
 
         self._reduced_me_a = new_me_a
         self._reduced_me_b = new_me_b
@@ -237,10 +229,7 @@ class ReducedMatrixElementComposite(MatrixElementInterface):
         self.decouple()
         ret_val = None
         for factor, me_a, me_b in self.children:
-            if isinstance(factor, SymbolicWigner):
-                term = factor.evaluate(symbolic_replace_dict)
-            else:
-                term = factor_eval(factor, symbolic_replace_dict)
+            term = factor.evaluate(symbolic_replace_dict)
             term *= me_a.me_evaluate(symbolic_replace_dict)
             term *= me_b.me_evaluate(symbolic_replace_dict)
             if ret_val:
