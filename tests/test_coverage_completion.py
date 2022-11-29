@@ -173,10 +173,7 @@ class CompleteTensorEvaluate(unittest.TestCase):
         me_7 = MatrixElement(lp, l, op)
         self.assertEqual("-2*sqrt(3) * <p'l'm_l'|{q_1 x q_1}_0|plm_l>", str(me_7))
 
-    def test_full_composite_decouple(self):
-        """
-        Note: Not a unit test, does not close any gaps, but it shows the capabilities of this code
-        """
+    def test_compare_statements(self):
         space_a = TensorSpace(name='a', order=0)
         space_b = TensorSpace(name='b', order=1)
         space_c = TensorSpace(name='c', order=2)
@@ -208,7 +205,12 @@ class CompleteTensorEvaluate(unittest.TestCase):
         ket = state_a.couple(state_b, Symbol("d")).couple(state_c, Symbol("e"))
         me = MatrixElement(bra, ket, op)
         decoupled_1 = me.decouple()
-        decoupled_2 = decoupled_1.decouple()
+        _, me_a, me_b = decoupled_1.children[0]
+        self.assertTrue(me_a != me_b)
+        self.assertTrue(me_a == me_a)
+
+
+
 
 
 if __name__ == '__main__':
