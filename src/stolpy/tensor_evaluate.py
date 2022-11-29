@@ -123,7 +123,7 @@ class ReducedMatrixElementComposite(MatrixElementInterface):
         :return: iterable object that contains the factor as the first element, the reduced_matrix_element_a as the
         second and the reduced_matrix_element_b as the last.
         """
-        return zip(self.factor, self.reduced_matrix_element_a, self.reduced_matrix_element_b)
+        return list(zip(self.factor, self.reduced_matrix_element_a, self.reduced_matrix_element_b))
 
     def __str__(
         self,
@@ -140,7 +140,7 @@ class ReducedMatrixElementComposite(MatrixElementInterface):
         else:
             return False
 
-    def __neg__(
+    def __ne__(
         self,
         other: ReducedMatrixElementComposite,
     ) -> bool:
@@ -402,7 +402,10 @@ class BasicMatrixElementLeafInterface(MatrixElementInterface):
         ReducedMatrixElement objects via the _basic_decouple function.
         """
         composite = self.decouple()
-        return composite.decouple()  # Make use of the full decoupling routine in composites
+        if composite:
+            return composite.decouple()  # Make use of the full decoupling routine in composites
+        else:
+            return None  # There is nothing to decouple
 
     def me_evaluate(
         self,
@@ -526,7 +529,7 @@ class ReducedMatrixElement(
         else:
             return False
 
-    def __neg__(
+    def __ne__(
         self,
         other: ReducedMatrixElement,
     ) -> bool:
